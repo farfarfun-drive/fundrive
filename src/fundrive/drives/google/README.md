@@ -157,11 +157,8 @@ python example.py --interactive
 ## 📋 依赖要求
 
 ```bash
-# 安装Google API客户端库
-pip install google-api-python-client google-auth-httplib2 google-auth-oauthlib
-
-# 项目依赖
-pip install funsecret funutil
+# 按项目声明安装 Google 驱动及其依赖
+uv add "fundrive[google]"
 ```
 
 ## 🔒 安全说明

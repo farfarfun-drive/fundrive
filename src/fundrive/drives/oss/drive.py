@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from fundrive.core import BaseDrive, DriveFile, ensure_parent_dir
 from fundrive.core.base import get_filepath
+from fundrive.core.exceptions import FunDriveError
 
 
 def public_oss_url(
@@ -52,8 +53,7 @@ class OSSDrive(BaseDrive):
         """
         try:
             if not self.bucket:
-                self.logger.error("未登录OSS服务")
-                return False
+                raise FunDriveError("检查 OSS 对象失败: 未登录 OSS 服务")
 
             # 对于文件，直接检查对象是否存在
             if not fid.endswith("/"):
@@ -63,9 +63,10 @@ class OSSDrive(BaseDrive):
             result = self.bucket.list_objects(prefix=fid, max_keys=1)
             return len(result.object_list) > 0
 
+        except FunDriveError:
+            raise
         except Exception as e:
-            self.logger.error(f"检查文件存在失败: {e}")
-            return False
+            raise FunDriveError(f"检查 OSS 对象是否存在失败: {fid}") from e
 
     def __init__(self, *args, **kwargs):
         """初始化OSS驱动
@@ -205,7 +206,14 @@ class OSSDrive(BaseDrive):
             self.logger.error(f"获取文件列表失败: {e}")
             return []
 
-    def mkdir(self, fid, name, return_if_exist=True, *args, **kwargs) -> str:
+    def mkdir(
+        self,
+        fid: str,
+        name: str,
+        return_if_exist: bool = True,
+        *args: Any,
+        **kwargs: Any,
+    ) -> str:
         """创建目录
 
         Args:

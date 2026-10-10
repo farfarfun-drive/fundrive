@@ -90,7 +90,7 @@ if drive.login():
     if files:
         success = drive.download_file(
             fid=files[0].fid,
-            filedir="./downloads",
+            save_dir="./downloads",
             filename=files[0].name
         )
         print(f"下载结果: {success}")
@@ -111,7 +111,7 @@ for file in results:
 # 下载整个目录
 success = drive.download_dir(
     fid="/documents",
-    filedir="./downloads/documents",
+    save_dir="./downloads/documents",
     overwrite=True
 )
 ```
