@@ -263,7 +263,7 @@ drive = AlipanDrive()
 - [阿里云盘官网](https://www.aliyundrive.com/)
 - [阿里云盘开放平台](https://www.aliyundrive.com/o/getting_started)
 - [aligo 库文档](https://github.com/foyoux/aligo)
-- [FunDrive 项目主页](https://github.com/farfarfun/fundrive)
+- [FunDrive 项目主页](https://github.com/farfarfun-fundrive/fundrive)
 
 ## 🤝 贡献指南
 

@@ -11,7 +11,7 @@ Dropbox 网盘驱动示例
 使用前请确保已配置 Dropbox API 访问令牌。
 
 作者: fundrive 开发团队
-文档: https://github.com/farfarfun/fundrive
+文档: https://github.com/farfarfun-fundrive/fundrive
 """
 
 import argparse
@@ -337,7 +337,7 @@ def main():
     # 显示欢迎信息
     logger.info("🎯 Dropbox 网盘驱动示例程序")
     logger.info("📦 基于 fundrive 框架开发")
-    logger.info("🔗 项目地址: https://github.com/farfarfun/fundrive")
+    logger.info("🔗 项目地址: https://github.com/farfarfun-fundrive/fundrive")
 
     try:
         if args.test:

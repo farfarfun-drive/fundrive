@@ -159,7 +159,7 @@ python example.py
 - **pCloud 官网**: [https://www.pcloud.com/](https://www.pcloud.com/)
 - **pCloud API 文档**: [https://docs.pcloud.com/](https://docs.pcloud.com/)
 - **HTTP JSON Protocol**: [https://docs.pcloud.com/protocols/http_json_protocol/](https://docs.pcloud.com/protocols/http_json_protocol/)
-- **FunDrive 项目**: [https://github.com/farfarfun/fundrive](https://github.com/farfarfun/fundrive)
+- **FunDrive 项目**: [https://github.com/farfarfun-fundrive/fundrive](https://github.com/farfarfun-fundrive/fundrive)
 
 ## ⚠️ 注意事项
 

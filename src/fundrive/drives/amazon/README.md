@@ -423,7 +423,7 @@ boto3.set_stream_logger('boto3', logging.DEBUG)
 ### 开发环境设置
 ```bash
 # 克隆仓库
-git clone https://github.com/farfarfun/fundrive.git
+git clone https://github.com/farfarfun-fundrive/fundrive.git
 cd fundrive
 
 # 安装开发依赖
