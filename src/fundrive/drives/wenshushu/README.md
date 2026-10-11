@@ -357,5 +357,5 @@ python -m pytest tests/
 
 - [FunDrive项目主页](https://github.com/farfarfun-drive/fundrive)
 - [文叔叔官网](https://www.wenshushu.cn)
-- [API文档](https://github.com/farfarfun-drive/fundrive/blob/main/docs/api.md)
+- [API文档](https://github.com/farfarfun-drive/fundrive/blob/master/docs/API.md)
 - [问题反馈](https://github.com/farfarfun-drive/fundrive/issues)
