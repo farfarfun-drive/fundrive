@@ -1,7 +1,7 @@
 [project]
 name = "fundrive"
 version = "2.0.91"
-description = "fundrive"
+description = "Unified cloud storage interface for multiple providers"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [

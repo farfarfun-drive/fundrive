@@ -8,76 +8,59 @@
 |方法|描述|
 |:--:|:--|
 |[安装](#安装)|安装方式|
-|[list](#list-查看)|查看该目录下有哪些文件|
-|[meta](#meta-查看)|可以查看某个文件的具体信息|
-|[upload](#upload-上传单个文件)|上传单个文件|
-|[download](#download-下载单个文件)|下载单个文件|
+|[get_file_list](#查看目录)|查看该目录下有哪些文件|
+|[get_file_info](#查看文件信息)|可以查看某个文件的具体信息|
+|[upload_file](#上传单个文件)|上传单个文件|
+|[download_file](#下载单个文件)|下载单个文件|
 |[upload_dir](#upload_dir-上传文件夹)|上传文件夹|
 |[download_dir](#download_dir-下载文件夹)|下载文件夹|
 
 
 # 使用
-## 第一次使用
-获取百度cookies中的BDUSS值，注意保密
-```python
-from fundrive.baidu.drive import BaiDuDrive
-client = BaiDuDrive(bduss="XXXXXXXXXXXXXXXXXXXXXXXX",save=True)
-```
-第一次使用后，会将BDUSS存入'~/.secret/.bduss'(save=True时)
+获取百度 cookies 中的 BDUSS、STOKEN 和 PTOKEN 值，注意保密。
 
-如果允许保存到本地，则下次调用不用传入dbuss,即
 ```python
-from fundrive.baidu.drive import BaiDuDrive
-client = BaiDuDrive()
-```
-
-## list 查看
-```python
-from fundrive.baidu.drive import BaiDuDrive
+from fundrive.drives.baidu import BaiDuDrive
 
 client = BaiDuDrive()
-for path in client.list("/drive/example/api"):
-    print(path['server_filename'])
+client.login(
+    bduss="XXXXXXXXXXXXXXXXXXXXXXXX",
+    stoken="XXXXXXXXXXXXXXXXXXXXXXXX",
+    ptoken="XXXXXXXXXXXXXXXXXXXXXXXX",
+)
 ```
 
-## meta 查看
+## 查看目录
 ```python
-from fundrive.baidu.drive import BaiDuDrive
-
-client = BaiDuDrive()
-print(client.meta("/drive/example/api/test.txt"))
+for file in client.get_file_list("/drive/example/api"):
+    print(file.name)
 ```
 
-## upload 上传单个文件
+## 查看文件信息
 ```python
-from fundrive.baidu.drive import BaiDuDrive
-
-client = BaiDuDrive()
-client.upload('test.txt', '/drive/example/api/test.txt', overwrite=False)
+print(client.get_file_info("/drive/example/api/test.txt"))
 ```
 
-## download 下载单个文件
+## 上传单个文件
 ```python
-from fundrive.baidu.drive import BaiDuDrive
+client.upload_file("test.txt", "/drive/example/api/test.txt", overwrite=False)
+```
 
-client = BaiDuDrive()
-client.download( '/drive/example/api/test.txt','test2.txt', overwrite=False)
+## 下载单个文件
+```python
+client.download_file(
+    "/drive/example/api/test.txt", save_dir=".", filename="test2.txt", overwrite=False
+)
 ```
 
 ## upload_dir 上传文件夹
 ```python
-from fundrive.baidu.drive import BaiDuDrive
-
-client = BaiDuDrive()
-client.upload_dir('logs', '/drive/example/api/')
+client.upload_dir(filedir="logs", fid="/drive/example/api/")
 ```
 
 ## download_dir 下载文件夹
 ```python
-from fundrive.baidu.drive import BaiDuDrive
-
-client = BaiDuDrive()
-client.download_dir('/drive/example/api/', 'logs')
+client.download_dir("/drive/example/api/", save_dir="logs")
 ```
 
 

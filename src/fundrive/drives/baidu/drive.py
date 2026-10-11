@@ -11,6 +11,7 @@ from funsecret import read_secret
 # 项目内部导入
 from fundrive.core import BaseDrive, DriveFile
 from fundrive.core.base import get_filepath
+from fundrive.core.exceptions import FunDriveError
 
 logger = getLogger("fundrive")
 
@@ -82,7 +83,7 @@ class BaiDuDrive(BaseDrive):
         try:
             self.drive.makedir(path)
         except Exception as e:
-            logger.error(f"makedir ({path}) error :{e}")
+            raise FunDriveError(f"创建百度网盘目录失败: {path}") from e
         return path
 
     def delete(self, fid: str, *args: Any, **kwargs: Any) -> bool:

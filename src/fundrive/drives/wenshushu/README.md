@@ -26,23 +26,15 @@
 
 ### 系统依赖
 ```bash
-pip install requests
-pip install orjson
-pip install tqdm
-pip install "fundrive[wenshushu]"
-pip install funsecret
-pip install funutil
+uv add "fundrive[wenshushu]"
 ```
 
 ### 加密依赖（上传功能需要）
-```bash
-pip install pycryptodomex
-pip install base58
-```
+上传所需的加密依赖已由 `fundrive[wenshushu]` 声明。
 
 ### FunDrive核心
 ```bash
-pip install fundrive
+uv sync
 ```
 
 ## 配置方法
@@ -340,11 +332,8 @@ A: 文叔叔支持所有文件类型，但可能对某些类型有大小限制�
 git clone https://github.com/farfarfun-fundrive/fundrive.git
 cd fundrive
 
-# 安装开发依赖
-pip install -e ".[dev]"
-
-# 安装文叔叔驱动依赖
-pip install pycryptodomex base58 orjson
+# 安装开发依赖和文叔叔驱动依赖
+uv sync --group dev --extra wenshushu
 
 # 运行测试
 python -m pytest tests/

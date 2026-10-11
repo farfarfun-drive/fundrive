@@ -73,7 +73,7 @@ class GoogleDrive(BaseDrive):
         if not self.credentials_file:
             logger.warning("未找到 Google Drive 凭据文件，请配置后使用")
 
-    def login(self, *args, **kwargs) -> bool:
+    def login(self, *args: Any, **kwargs: Any) -> bool:
         """
         登录Google Drive服务
 

@@ -211,11 +211,11 @@ print(f"是否为目录: {file.is_dir}")
 11. **OSSUtilDrive** - 阿里云OSS（ossutil命令行工具版本）
 
 ### 🔧 通用协议和工具
-12. **WebDAVDrive** - WebDAV协议
+12. **WebDavDrive** - WebDAV协议
 13. **OSDrive** - 本地文件系统
 14. **PCloudDrive** - PCloud云存储
 15. **MediaFireDrive** - MediaFire文件分享
-16. **LanzouDrive** - 蓝奏云
+16. **LanZouDrive** - 蓝奏云
 
 ### 🔬 学术和专业服务
 17. **ZenodoDrive** - Zenodo学术数据存储
@@ -228,7 +228,7 @@ print(f"是否为目录: {file.is_dir}")
 
 ### 常见异常类型
 
-- `DriveError`: 驱动基础异常
+- `FunDriveError`: 驱动基础异常
 - `AuthenticationError`: 认证失败异常
 - `FileNotFoundError`: 文件未找到异常
 - `PermissionError`: 权限不足异常
@@ -238,7 +238,7 @@ print(f"是否为目录: {file.is_dir}")
 ### 异常处理示例
 
 ```python
-from fundrive.core.exceptions import DriveError, AuthenticationError
+from fundrive.core.exceptions import AuthenticationError, FunDriveError
 
 try:
     drive = GoogleDrive()
@@ -246,7 +246,7 @@ try:
     success = drive.upload_file("local_file.txt", "root")
 except AuthenticationError as e:
     print(f"认证失败: {e}")
-except DriveError as e:
+except FunDriveError as e:
     print(f"驱动错误: {e}")
 except Exception as e:
     print(f"未知错误: {e}")

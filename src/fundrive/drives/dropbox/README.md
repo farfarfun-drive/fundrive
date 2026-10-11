@@ -40,7 +40,7 @@ Dropbox 是全球领先的云存储服务提供商，为个人和企业用户提
 ### 依赖要求
 
 ```bash
-pip install dropbox funsecret funutil tqdm
+uv add "fundrive[dropbox]"
 ```
 
 ### API 配置
@@ -319,7 +319,7 @@ drive = DropboxDrive()
 ### 开发环境
 
 1. 克隆项目仓库
-2. 安装开发依赖：`pip install -e .[dev]`
+2. 安装开发依赖：`uv sync --group dev --extra dropbox`
 3. 运行测试：`python -m pytest tests/`
 4. 检查代码风格：`black . && flake8 .`
 

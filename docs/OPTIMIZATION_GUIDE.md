@@ -8,18 +8,15 @@
 
 现在可以通过简单的字符串标识符来创建任何支持的云存储驱动：
 ```python
-from fundrive import get_drive, list_available_drives, get_drive_info
+from fundrive import DRIVE_SPECS, get_drive, list_available_drives
 
 # 查看所有可用驱动
 available_drives = list_available_drives()
 print(f"支持的驱动: {list(available_drives.keys())}")
 
 # 获取驱动详细信息
-drive_info = get_drive_info()
-for category, drives in drive_info.items():
-    print(f"\n{category}:")
-    for name, desc in drives.items():
-        print(f"  {name}: {desc}")
+for name, spec in DRIVE_SPECS.items():
+    print(f"{name}: {spec.class_name}")
 
 # 创建驱动实例
 google_drive = get_drive('google', credentials_file='path/to/creds.json')
@@ -67,7 +64,7 @@ except RateLimitError as e:
 使用装饰器为函数添加自动重试功能：
 
 ```python
-from fundrive.core import retry_on_error, NetworkError, RateLimitError
+from fundrive.core.exceptions import NetworkError, RateLimitError, retry_on_error
 
 class MyDrive:
     @retry_on_error(
@@ -86,7 +83,7 @@ class MyDrive:
 使用缓存装饰器提高重复操作的性能：
 
 ```python
-from fundrive.core import cache_result
+from fundrive.core.utils import cache_result
 
 class MyDrive:
     @cache_result(max_size=100, ttl=300)  # 缓存100个结果，5分钟过期
@@ -108,7 +105,7 @@ class MyDrive:
 控制API调用频率，避免触发服务端限制：
 
 ```python
-from fundrive.core import rate_limit
+from fundrive.core.utils import rate_limit
 
 class MyDrive:
     @rate_limit(max_calls=100, time_window=60.0)  # 每分钟最多100次调用
@@ -126,7 +123,7 @@ class MyDrive:
 跟踪文件上传/下载进度：
 
 ```python
-from fundrive.core import ProgressTracker
+from fundrive.core.utils import ProgressTracker
 
 def upload_with_progress(drive, file_path, remote_path):
     file_size = os.path.getsize(file_path)
@@ -176,7 +173,7 @@ print(f"文件MD5: {file_hash}")
 对于需要频繁创建连接的场景：
 
 ```python
-from fundrive.core import ConnectionPool
+from fundrive.core.utils import ConnectionPool
 import requests
 
 # 创建HTTP连接池
@@ -206,15 +203,14 @@ print(f"连接池状态: {stats}")
 
 ```python
 from fundrive import get_drive
-from fundrive.core import (
-    retry_on_error, 
-    cache_result, 
-    rate_limit,
+from fundrive.core.exceptions import (
+    NetworkError,
+    RateLimitError,
     handle_api_errors,
     log_operation,
-    NetworkError,
-    RateLimitError
+    retry_on_error,
 )
+from fundrive.core.utils import cache_result, rate_limit
 
 class OptimizedDrive:
     def __init__(self, drive_type, **kwargs):
