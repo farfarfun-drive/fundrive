@@ -334,7 +334,7 @@ drive = DropboxDrive()
 
 ## 相关链接
 
-- 📦 [fundrive 项目主页](https://github.com/farfarfun-fundrive/fundrive)
+- 📦 [fundrive 项目主页](https://github.com/farfarfun-drive/fundrive)
 - 📚 [Dropbox API 文档](https://www.dropbox.com/developers/documentation)
 - 🔧 [funsecret 配置管理](https://github.com/farfarfun/funsecret)
 - 🛠️ [开发规范文档](../../DEVELOPMENT_GUIDE.md)

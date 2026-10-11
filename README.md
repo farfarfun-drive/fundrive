@@ -177,13 +177,13 @@ uv pip install "fundrive[alipan]"
 ### 从源码安装
 
 ```bash
-uv pip install "git+https://github.com/farfarfun-fundrive/fundrive.git"
+uv pip install "git+https://github.com/farfarfun-drive/fundrive.git"
 ```
 
 ### 参与开发
 
 ```bash
-git clone https://github.com/farfarfun-fundrive/fundrive.git
+git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 uv sync --group dev     # 根据 pyproject.toml 解析依赖，只装核心依赖
 uv run pytest                    # 跑测试
@@ -692,7 +692,7 @@ def restore(self, fid, *args, **kwargs):
 
 ## 联系我们
 
-如果您有任何问题或建议，请通过 [issues](https://github.com/farfarfun-fundrive/fundrive/issues) 或 [email](mailto:1007530194@qq.com) 联系我们。
+如果您有任何问题或建议，请通过 [issues](https://github.com/farfarfun-drive/fundrive/issues) 或 [email](mailto:1007530194@qq.com) 联系我们。
 
 ---
 

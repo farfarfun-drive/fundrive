@@ -358,7 +358,7 @@ else:
 ### 开发环境设置
 ```bash
 # 克隆项目
-git clone https://github.com/farfarfun-fundrive/fundrive.git
+git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖

@@ -98,7 +98,7 @@ for r in results:
 
 - [Zenodo REST API 文档](https://developers.zenodo.org/#rest-api)
 - [Zenodo 官网](https://zenodo.org/)
-- [FunDrive 项目主页](https://github.com/farfarfun-fundrive/fundrive)
+- [FunDrive 项目主页](https://github.com/farfarfun-drive/fundrive)
 
 ## 📄 许可证
 

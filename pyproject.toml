@@ -59,9 +59,9 @@ openxlab = []
 tianchi = []
 
 [project.urls]
-Organization = "https://github.com/farfarfun-fundrive"
-Repository = "https://github.com/farfarfun-fundrive/fundrive"
-Releases = "https://github.com/farfarfun-fundrive/fundrive/releases"
+Organization = "https://github.com/farfarfun-drive"
+Repository = "https://github.com/farfarfun-drive/fundrive"
+Releases = "https://github.com/farfarfun-drive/fundrive/releases"
 
 [build-system]
 requires = ["hatchling"]

@@ -59,4 +59,4 @@ for file in files:
 ## 遇到问题
 
 - 先看对应驱动目录下的 `README.md`（比如 `src/fundrive/drives/google/README.md`），大多数驱动特有的认证/配置问题都记录在那里。
-- 仍未解决的，欢迎在 [issues](https://github.com/farfarfun-fundrive/fundrive/issues) 提问。
+- 仍未解决的，欢迎在 [issues](https://github.com/farfarfun-drive/fundrive/issues) 提问。

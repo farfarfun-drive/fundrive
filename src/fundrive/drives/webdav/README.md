@@ -420,7 +420,7 @@ test_webdav_connection(
 - [Nextcloud WebDAV文档](https://docs.nextcloud.com/server/latest/user_manual/files/access_webdav.html)
 - [ownCloud WebDAV文档](https://doc.owncloud.com/server/admin_manual/configuration/files/files_locking_transactional.html)
 - [坚果云WebDAV设置](https://help.jianguoyun.com/?p=2064)
-- [FunDrive 项目主页](https://github.com/farfarfun-fundrive/fundrive)
+- [FunDrive 项目主页](https://github.com/farfarfun-drive/fundrive)
 
 ## 🤝 贡献指南
 

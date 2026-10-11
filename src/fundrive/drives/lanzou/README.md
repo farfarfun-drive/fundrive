@@ -1,6 +1,6 @@
 # 蓝奏云驱动（LanZouDrive）
 
-`fundrive.drives.lanzou` 基于 [`fundrive-lanzou`](https://github.com/farfarfun-fundrive/fundrive-lanzou)
+`fundrive.drives.lanzou` 基于 [`fundrive-lanzou`](https://github.com/farfarfun-drive/fundrive-lanzou)
 （源自 [zaxtyson/LanZouCloud-API](https://github.com/zaxtyson/LanZouCloud-API)）封装，
 把蓝奏云接入 FunDrive 的统一 `BaseDrive` 接口。
 

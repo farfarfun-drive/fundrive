@@ -329,7 +329,7 @@ A: 文叔叔支持所有文件类型，但可能对某些类型有大小限制�
 
 ```bash
 # 克隆项目
-git clone https://github.com/farfarfun-fundrive/fundrive.git
+git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖和文叔叔驱动依赖
@@ -355,7 +355,7 @@ python -m pytest tests/
 
 ## 相关链接
 
-- [FunDrive项目主页](https://github.com/farfarfun-fundrive/fundrive)
+- [FunDrive项目主页](https://github.com/farfarfun-drive/fundrive)
 - [文叔叔官网](https://www.wenshushu.cn)
-- [API文档](https://github.com/farfarfun-fundrive/fundrive/blob/main/docs/api.md)
-- [问题反馈](https://github.com/farfarfun-fundrive/fundrive/issues)
+- [API文档](https://github.com/farfarfun-drive/fundrive/blob/main/docs/api.md)
+- [问题反馈](https://github.com/farfarfun-drive/fundrive/issues)

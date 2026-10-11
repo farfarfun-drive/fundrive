@@ -338,7 +338,7 @@ drive = OsDrive(root_path="/path/to/storage")
 
 - [Python pathlib 文档](https://docs.python.org/3/library/pathlib.html)
 - [Python os 模块文档](https://docs.python.org/3/library/os.html)
-- [FunDrive 项目主页](https://github.com/farfarfun-fundrive/fundrive)
+- [FunDrive 项目主页](https://github.com/farfarfun-drive/fundrive)
 
 ## 🤝 贡献指南
 

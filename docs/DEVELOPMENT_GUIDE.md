@@ -875,8 +875,8 @@ python example.py --interactive
 ### 获取帮助
 
 - 📧 **邮件支持**: 1007530194@qq.com
-- 🐛 **问题反馈**: [GitHub Issues](https://github.com/farfarfun-fundrive/fundrive/issues)
-- 💬 **讨论交流**: [GitHub Discussions](https://github.com/farfarfun-fundrive/fundrive/discussions)
+- 🐛 **问题反馈**: [GitHub Issues](https://github.com/farfarfun-drive/fundrive/issues)
+- 💬 **讨论交流**: [GitHub Discussions](https://github.com/farfarfun-drive/fundrive/discussions)
 
 ---
 

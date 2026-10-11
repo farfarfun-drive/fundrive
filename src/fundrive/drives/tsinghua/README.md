@@ -290,7 +290,7 @@ A: 搜索会递归遍历所有子目录，查找文件名包含关键词的文�
 
 ```bash
 # 克隆项目
-git clone https://github.com/farfarfun-fundrive/fundrive.git
+git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖
@@ -315,7 +315,7 @@ python -m pytest tests/
 
 ## 相关链接
 
-- [FunDrive项目主页](https://github.com/farfarfun-fundrive/fundrive)
+- [FunDrive项目主页](https://github.com/farfarfun-drive/fundrive)
 - [清华云盘官网](https://cloud.tsinghua.edu.cn)
-- [API文档](https://github.com/farfarfun-fundrive/fundrive/blob/main/docs/api.md)
-- [问题反馈](https://github.com/farfarfun-fundrive/fundrive/issues)
+- [API文档](https://github.com/farfarfun-drive/fundrive/blob/main/docs/api.md)
+- [问题反馈](https://github.com/farfarfun-drive/fundrive/issues)
