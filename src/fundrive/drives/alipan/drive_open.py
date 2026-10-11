@@ -129,9 +129,7 @@ class AliopenDrive(BaseDrive):
             )
         return result
 
-    def get_file_info(
-        self, fid: str, *args: Any, **kwargs: Any
-    ) -> DriveFile:
+    def get_file_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile:
         res = self.drive.get_file_details(file_id=fid)
         return DriveFile(
             fid=res["file_id"], name=res["name"], size=res["size"], ext=res
