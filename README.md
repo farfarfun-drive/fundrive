@@ -707,12 +707,13 @@ def restore(self, fid, *args, **kwargs):
 
 ---
 
-## 关于 farfarfun
+## 关于 farfarfun-drive
 
-[farfarfun](https://github.com/farfarfun) 是一个专注于实用工具库的开源组织，
-涵盖云存储、数据处理、AI、多媒体与开发工具链等方向。
+[farfarfun](https://github.com/farfarfun) 的网盘 / 云存储产品线：以
+[fundrive](https://github.com/farfarfun-drive/fundrive) 的统一 `BaseDrive` 接口为核心，
+配套各网盘的独立驱动包与蓝奏云 SDK / 桌面客户端。
 
-- 🏠 组织主页：<https://github.com/farfarfun>
+- 🏠 组织主页：<https://github.com/farfarfun-drive>
 - 📦 PyPI：<https://pypi.org/user/niuliangtao/>
 - 📧 联系：farfarfun@qq.com
 
