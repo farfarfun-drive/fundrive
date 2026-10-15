@@ -30,7 +30,7 @@ Amazon S3（Simple Storage Service）是亚马逊提供的对象存储服务，�
 ## 安装依赖
 
 ```bash
-pip install boto3 funsecret funutil
+uv add "fundrive[amazon]"
 ```
 
 ## 配置方法
@@ -427,7 +427,7 @@ git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖
-pip install -e ".[dev]"
+uv sync --group dev --extra amazon
 
 # 运行测试
 python -m pytest tests/drives/test_amazon.py

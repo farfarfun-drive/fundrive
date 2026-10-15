@@ -25,16 +25,10 @@ MediaFire是一个流行的云存储服务，提供文件存储、共享和同�
 
 ## 安装依赖
 
-MediaFire驱动需要以下Python包：
+MediaFire 驱动只用到核心依赖，装 fundrive 即可：
 
 ```bash
-pip install requests funsecret funutil
-```
-
-或者安装完整的FunDrive项目：
-
-```bash
-pip install fundrive[mediafire]
+uv add fundrive
 ```
 
 ## 配置说明
@@ -349,7 +343,7 @@ git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖
-pip install -e .[dev]
+uv sync --group dev
 
 # 运行测试
 python -m pytest tests/test_mediafire.py

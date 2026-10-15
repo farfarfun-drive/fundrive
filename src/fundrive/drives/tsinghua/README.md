@@ -22,17 +22,10 @@
 
 ## 安装要求
 
-### 系统依赖
-```bash
-pip install requests
-pip install fundrive
-pip install funsecret
-pip install funutil
-```
+清华云盘驱动只用到核心依赖，装 fundrive 即可：
 
-### FunDrive核心
 ```bash
-pip install fundrive
+uv add fundrive
 ```
 
 ## 配置方法
@@ -294,7 +287,7 @@ git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖
-pip install -e ".[dev]"
+uv sync --group dev
 
 # 运行测试
 python -m pytest tests/

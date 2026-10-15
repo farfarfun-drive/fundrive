@@ -23,16 +23,10 @@
 
 ## 安装依赖
 
-天池驱动需要以下Python包：
+天池驱动只用到核心依赖，装 fundrive 即可：
 
 ```bash
-pip install fundrive
-```
-
-或者安装完整的FunDrive项目：
-
-```bash
-pip install fundrive[tianchi]
+uv add fundrive
 ```
 
 ## 配置说明
@@ -377,7 +371,7 @@ git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖
-pip install -e .[dev]
+uv sync --group dev
 
 # 运行测试
 python -m pytest tests/test_tianchi.py

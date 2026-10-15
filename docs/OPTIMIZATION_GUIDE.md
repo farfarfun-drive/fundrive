@@ -16,7 +16,7 @@ print(f"支持的驱动: {list(available_drives.keys())}")
 
 # 获取驱动详细信息
 for name, spec in DRIVE_SPECS.items():
-    print(f"{name}: {spec.class_name}")
+    print(f"{name}: {spec.cls}")
 
 # 创建驱动实例
 google_drive = get_drive('google', credentials_file='path/to/creds.json')

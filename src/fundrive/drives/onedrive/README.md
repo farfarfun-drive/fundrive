@@ -162,11 +162,8 @@ python example.py --interactive
 ## 📋 依赖要求
 
 ```bash
-# 安装HTTP请求库
-pip install requests
-
-# 项目依赖
-pip install funsecret funutil
+# OneDrive 驱动只用到核心依赖，装 fundrive 即可
+uv add fundrive
 ```
 
 ## 🔒 安全说明

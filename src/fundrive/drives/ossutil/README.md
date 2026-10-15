@@ -39,7 +39,7 @@
 ### 1. 安装依赖
 
 ```bash
-pip install fundrive
+uv add "fundrive[ossutil]"
 ```
 
 ### 2. 配置认证信息
