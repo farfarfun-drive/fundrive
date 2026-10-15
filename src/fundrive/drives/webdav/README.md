@@ -15,11 +15,8 @@ WebDAV（Web Distributed Authoring and Versioning）是一个基于HTTP的协议
 ## 📦 安装依赖
 
 ```bash
-# 安装WebDAV驱动依赖
-pip install fundrive[webdav]
-
-# 或者手动安装依赖
-pip install webdavclient3 requests
+# 安装 WebDAV 驱动及其依赖（webdav4，版本以 pyproject.toml 为唯一来源）
+uv add "fundrive[webdav]"
 ```
 
 ## 🔧 配置方法

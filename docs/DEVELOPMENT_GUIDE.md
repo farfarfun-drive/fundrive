@@ -128,7 +128,7 @@ src/fundrive/drives/{drive_name}/
 | **DriveFile** | 文件信息封装类 | 🔴 核心 |
 | **BaseDriveTest** | 通用测试框架 | 🟡 重要 |
 | **funsecret** | 配置管理工具 | 🟡 重要 |
-| **funutil** | 日志和工具库 | 🟢 辅助 |
+| **farlog** | 日志库 | 🟢 辅助 |
 
 ### 必需文件说明
 
@@ -649,10 +649,10 @@ print(f"剩余空间: {quota.get('available', 0) / (1024*1024*1024):.2f} GB")
 **解决步骤**:
 ```bash
 # 1. 检查依赖安装
-pip list | grep fundrive
+uv pip list | grep fundrive
 
 # 2. 重新安装
-pip install -e .
+uv sync
 
 # 3. 检查 Python 路径
 python -c "import sys; print('\n'.join(sys.path))"
@@ -814,7 +814,7 @@ logger = getLogger("fundrive.your_drive")
 ### 🟡 重要项目（强烈推荐）
 
 - [ ] **集成 funsecret 配置管理**
-- [ ] **使用 funutil 统一日志记录**
+- [ ] **使用 farlog 统一日志记录**
 - [ ] **实现高级功能（搜索、分享、配额查询）**
 - [ ] **提供不支持功能的警告实现**
 - [ ] **添加详细的 API 文档引用**

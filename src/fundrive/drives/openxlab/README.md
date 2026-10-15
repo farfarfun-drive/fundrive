@@ -23,16 +23,10 @@ OpenXLab是上海人工智能实验室推出的开放平台，提供数据集存
 
 ## 安装依赖
 
-OpenXLab驱动需要以下Python包：
+OpenXLab 驱动只用到核心依赖，装 fundrive 即可：
 
 ```bash
-pip install fundrive
-```
-
-或者安装完整的FunDrive项目：
-
-```bash
-pip install fundrive[openxlab]
+uv add fundrive
 ```
 
 ## 配置说明
@@ -362,7 +356,7 @@ git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖
-pip install -e .[dev]
+uv sync --group dev
 
 # 运行测试
 python -m pytest tests/test_openxlab.py

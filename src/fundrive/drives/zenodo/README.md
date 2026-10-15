@@ -5,7 +5,7 @@
 ## 📦 安装依赖
 
 ```bash
-pip install fundrive[zenodo]
+uv add "fundrive[zenodo]"
 ```
 
 ## 🔧 配置方法

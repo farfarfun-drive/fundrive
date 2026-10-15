@@ -21,11 +21,8 @@
 ## 📦 安装依赖
 
 ```bash
-# 安装阿里云盘驱动依赖
-pip install fundrive[alipan]
-
-# 或者手动安装依赖
-pip install aligo requests
+# 安装阿里云盘驱动及其依赖（版本以 pyproject.toml 为唯一来源）
+uv add "fundrive[alipan]"
 ```
 
 ## 🔧 配置方法
@@ -58,9 +55,9 @@ export ALIPAN_CLIENT_SECRET="your_client_secret"
 
 ### AlipanDrive (refresh_token)
 
-1. **安装 aligo 库**:
+1. **安装阿里云盘 extra（含 aligo）**:
    ```bash
-   pip install aligo
+   uv add "fundrive[alipan]"
    ```
 
 2. **获取 refresh_token**:

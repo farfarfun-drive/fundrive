@@ -28,7 +28,7 @@ GitHub是全球最大的代码托管平台，本驱动将GitHub仓库作为云�
 ## 安装依赖
 
 ```bash
-pip install requests orjson funsecret funutil
+uv add fundrive
 ```
 
 ## 配置方法
@@ -378,7 +378,7 @@ git clone https://github.com/farfarfun-drive/fundrive.git
 cd fundrive
 
 # 安装开发依赖
-pip install -e ".[dev]"
+uv sync --group dev
 
 # 运行测试
 python -m pytest tests/drives/test_github.py

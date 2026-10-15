@@ -15,7 +15,7 @@
 本地文件系统驱动无需额外依赖，随FunDrive核心包一起安装：
 
 ```bash
-pip install fundrive
+uv add fundrive
 ```
 
 ## 🔧 配置方法
