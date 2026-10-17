@@ -75,7 +75,7 @@ def main():
     logger.info("- fundrive.pcloud.password  # pCloud 密码")
     logger.info("📚 相关文档:")
     logger.info("- API 文档: https://docs.pcloud.com/")
-    logger.info("- 开发指南: 查看项目 DEVELOPMENT_GUIDE.md")
+    logger.info("- 开发指南: fundrive-dev 仓库 docs/development/driver-contract/")
 
 
 if __name__ == "__main__":

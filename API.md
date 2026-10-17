@@ -1,6 +1,6 @@
 # FunDrive API 文档
 
-> **接口规范**：方法签名与调用约定以 [INTERFACE-OPTIMIZATION.md](/INTERFACE-OPTIMIZATION.md) 及 `src/fundrive/core/base.py` 为准；所有变更均保持向上兼容。
+> **接口规范**：方法签名与调用约定以 [接口契约](https://github.com/farfarfun-drive/fundrive-dev/blob/master/docs/development/driver-contract/002-interface-contract.md) 及 `src/fundrive/core/base.py` 为准；所有变更均保持向上兼容。
 
 ## 项目概述
 
@@ -319,6 +319,6 @@ A: 驱动内置了重试机制，可以通过配置参数调整重试次数和�
 ---
 
 更多详细信息请参考：
-- [快速开始指南](QUICK_START.md)
-- [开发指南](DEVELOPMENT_GUIDE.md)
+- [快速开始](README.md#-快速开始)
+- [驱动开发指南](https://github.com/farfarfun-drive/fundrive-dev/blob/master/docs/development/driver-contract/003-driver-development.md)
 - [变更日志](CHANGELOG.md)

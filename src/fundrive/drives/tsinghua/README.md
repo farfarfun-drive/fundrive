@@ -310,5 +310,5 @@ python -m pytest tests/
 
 - [FunDrive项目主页](https://github.com/farfarfun-drive/fundrive)
 - [清华云盘官网](https://cloud.tsinghua.edu.cn)
-- [API文档](https://github.com/farfarfun-drive/fundrive/blob/master/docs/API.md)
+- [API文档](https://github.com/farfarfun-drive/fundrive/blob/master/API.md)
 - [问题反馈](https://github.com/farfarfun-drive/fundrive/issues)

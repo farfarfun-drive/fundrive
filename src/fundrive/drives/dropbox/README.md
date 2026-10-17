@@ -337,7 +337,7 @@ drive = DropboxDrive()
 - 📦 [fundrive 项目主页](https://github.com/farfarfun-drive/fundrive)
 - 📚 [Dropbox API 文档](https://www.dropbox.com/developers/documentation)
 - 🔧 [funsecret 配置管理](https://github.com/farfarfun/funsecret)
-- 🛠️ [开发规范文档](../../DEVELOPMENT_GUIDE.md)
+- 🛠️ [驱动开发指南](https://github.com/farfarfun-drive/fundrive-dev/blob/master/docs/development/driver-contract/003-driver-development.md)
 
 **版本**: 1.0.0  
 **作者**: fundrive 开发团队  

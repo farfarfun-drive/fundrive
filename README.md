@@ -4,11 +4,21 @@ FunDrive 是一个统一的网盘操作接口框架，旨在提供一个标准�
 
 ## 📚 文档导航
 
-- **[📖 API接口文档](docs/API.md)** - 完整的API接口说明，适合开发者集成使用
+本仓库的文档：
+
+- **[📖 API 接口文档](API.md)** - 完整的 API 接口说明，适合开发者集成使用
+- **[📊 优化功能指南](OPTIMIZATION.md)** - 统一驱动管理、错误处理、性能工具的用法
 - **[📋 变更日志](CHANGELOG.md)** - 版本变更记录和更新说明
-- **[🚀 快速入门指南](docs/QUICK_START.md)** - 5分钟快速上手，包含常用场景示例
-- **[🔧 开发指南](docs/DEVELOPMENT_GUIDE.md)** - 开发者贡献指南和最佳实践
-- **[📊 性能优化指南](docs/OPTIMIZATION_GUIDE.md)** - 性能优化建议和最佳实践
+- 快速上手看下面的 [🚀 快速开始](#-快速开始)；某个驱动特有的认证/配置问题，
+  先看该驱动目录下的 `README.md`（如 `src/fundrive/drives/google/README.md`）
+
+跨仓库的技术契约放在编排仓库
+[fundrive-dev](https://github.com/farfarfun-drive/fundrive-dev) —— 它们同时约束本库内置的
+驱动和 `fundrive-alipan` / `fundrive-baidu` / `fundrive-lanzou` / `fundrive-quark`
+四个独立驱动包：
+
+- **[🧭 接口契约](https://github.com/farfarfun-drive/fundrive-dev/blob/master/docs/development/driver-contract/002-interface-contract.md)** - 统一接口的规范基准：方法签名、调用约定、向上兼容要求
+- **[🔧 驱动开发指南](https://github.com/farfarfun-drive/fundrive-dev/blob/master/docs/development/driver-contract/003-driver-development.md)** - 从零实现一个符合规范的驱动
 
 ## 从 1.x 升级到 2.x
 

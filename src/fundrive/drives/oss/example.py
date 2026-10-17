@@ -80,7 +80,7 @@ def main():
     logger.info("- fundrive.oss.endpoint       # OSS访问域名")
     logger.info("\n📚 相关文档:")
     logger.info("- API 文档: https://help.aliyun.com/document_detail/32026.html")
-    logger.info("- 开发指南: 查看项目 DEVELOPMENT_GUIDE.md")
+    logger.info("- 开发指南: fundrive-dev 仓库 docs/development/driver-contract/")
 
 
 if __name__ == "__main__":

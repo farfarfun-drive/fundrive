@@ -4,7 +4,7 @@
 跑起来的驱动，也因此充当 ``BaseDrive`` 契约的活基准：这里覆盖的行为，其它
 驱动理应表现一致。
 
-这些用例对应的历史问题（见 ``docs/AUDIT-2026-07.md``）：
+这些用例对应的历史问题（见 ``archive/AUDIT-2026-07.md``）：
 * ``login()`` 抛 NotImplementedError；
 * ``mkdir("/", name, return_if_exist=True)`` 因为签名是
   ``mkdir(path, exist_ok=True)``，把 ``name`` 绑到了 ``exist_ok``，

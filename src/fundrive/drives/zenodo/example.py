@@ -80,7 +80,7 @@ def main():
     logger.info("- fundrive.zenodo.access_token  # Zenodo 访问令牌")
     logger.info("📚 相关文档:")
     logger.info("- API 文档: https://developers.zenodo.org/#rest-api")
-    logger.info("- 开发指南: 查看项目 DEVELOPMENT_GUIDE.md")
+    logger.info("- 开发指南: fundrive-dev 仓库 docs/development/driver-contract/")
     logger.info("- 沙盒环境: https://sandbox.zenodo.org/")
 
 
