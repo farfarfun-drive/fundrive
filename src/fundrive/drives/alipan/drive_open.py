@@ -1,10 +1,11 @@
 # 标准库导入
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
+
+from farlog import getLogger
 
 # 第三方库导入
 from fundrives.aliopen import AliOpenManage
-from farlog import getLogger
 from funsecret import read_secret
 
 # 项目内部导入
@@ -199,9 +200,7 @@ class AliopenDrive(BaseDrive):
         :param expire_days: 分享链接有效期（天），0表示永久有效
         :param description: 分享描述
         """
-        now = datetime.now(timezone.utc) + timedelta(days=expire_days)
+        now = datetime.now(UTC) + timedelta(days=expire_days)
         expiration = now.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
-        self.drive.create_share(
-            [fid for fid in fids], share_pwd=password, expiration=expiration
-        )
+        self.drive.create_share(list(fids), share_pwd=password, expiration=expiration)

@@ -25,7 +25,6 @@ import argparse
 import os
 import tempfile
 
-
 from fundrive.drives.wenshushu import WSSDrive
 from fundrive.utils.file import print_files
 
@@ -119,8 +118,7 @@ def demo_upload_operations(drive: WSSDrive):
 
             # 返回最新上传的文件信息
             if files:
-                latest_file = files[-1]  # 假设最后一个是最新上传的
-                return latest_file
+                return files[-1]  # 假设最后一个是最新上传的
         else:
             print("❌ 文件上传失败")
 
@@ -332,7 +330,7 @@ def run_interactive_demo():
 
         if choice == "0" or choice.lower() == "quit":
             break
-        elif choice == "1":
+        if choice == "1":
             storage_info = drive.get_storage_info()
             if storage_info:
                 print("\n💾 存储空间信息:")

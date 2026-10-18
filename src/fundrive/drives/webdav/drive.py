@@ -3,12 +3,13 @@ import posixpath
 import re
 from typing import Any
 from urllib.parse import quote, unquote, urlparse
-
-from farlog import getLogger
-from funsecret import read_secret
-import requests
 from xml.etree import ElementTree as ET
+
+import requests
+from farlog import getLogger
 from funget import simple_download, single_upload
+from funsecret import read_secret
+
 from fundrive.core import BaseDrive, DriveFile
 from fundrive.core.exceptions import InvalidParameterError
 

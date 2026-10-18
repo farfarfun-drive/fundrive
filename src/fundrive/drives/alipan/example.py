@@ -258,12 +258,11 @@ def run_interactive_demo():
             drive = create_alipan_drive()
             drive_name = "AlipanDrive"
             break
-        elif choice == "2":
+        if choice == "2":
             drive = create_aliopen_drive()
             drive_name = "AliopenDrive"
             break
-        else:
-            print("❌ 无效选择，请输入 1 或 2")
+        print("❌ 无效选择，请输入 1 或 2")
 
     if not drive:
         logger.error("❌ 无法创建驱动实例，退出演示")

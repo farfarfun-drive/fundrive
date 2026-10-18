@@ -1,13 +1,11 @@
 import os
 from abc import abstractmethod
-from pathlib import Path
-from typing import Any, TypeVar, Generic
 from collections.abc import Callable
+from pathlib import Path
+from typing import Any
 
-T = TypeVar("T")
 
-
-class DriveFile(dict, Generic[T]):
+class DriveFile[T](dict):
     """
     网盘文件/目录信息类
     继承自dict，作为文件/目录属性的容器，支持字典式的属性访问
@@ -153,10 +151,9 @@ def get_filepath(
     """
     if filepath:
         return str(Path(filepath).resolve())
-    elif filedir and filename:
+    if filedir and filename:
         return str(Path(filedir).joinpath(filename).resolve())
-    else:
-        raise ValueError("Either filepath or (filedir and filename) must be provided")
+    raise ValueError("Either filepath or (filedir and filename) must be provided")
 
 
 def ensure_parent_dir(path: str) -> str:

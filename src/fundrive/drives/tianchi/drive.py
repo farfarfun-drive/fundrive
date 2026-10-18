@@ -20,8 +20,8 @@ from typing import Any
 
 import orjson
 import requests
-from funget import simple_download
 from farlog import getLogger
+from funget import simple_download
 from funsecret import read_secret
 
 from fundrive.core import BaseDrive, DriveFile, ensure_parent_dir
@@ -458,9 +458,8 @@ class TianChiDrive(BaseDrive):
             if success:
                 logger.info(f"✅ 文件下载成功: {local_path}")
                 return True
-            else:
-                logger.error("❌ 文件下载失败")
-                return False
+            logger.error("❌ 文件下载失败")
+            return False
 
         except Exception as e:
             logger.error(f"下载文件失败: {e}")

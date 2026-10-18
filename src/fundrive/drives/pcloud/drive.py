@@ -4,17 +4,19 @@ from typing import Any
 from urllib.parse import urljoin
 
 import requests
-from funget import download
 from farlog import getLogger
+from funget import download
 from funsecret import read_secret
 
 from fundrive.core import BaseDrive, DriveFile
-from fundrive.core.http import new_session
+from fundrive.core.exceptions import (
+    FileNotFoundError as DriveFileNotFoundError,
+)
 from fundrive.core.exceptions import (
     FunDriveError,
     NetworkError,
-    FileNotFoundError as DriveFileNotFoundError,
 )
+from fundrive.core.http import new_session
 
 logger = getLogger("pcloud_drive")
 
@@ -197,8 +199,7 @@ class PCloudDrive(BaseDrive):
                 # 查找匹配的文件
                 for item in contents:
                     if not item.get("isfolder", False) and item.get("name") == filename:
-                        file_id = str(item.get("fileid", ""))
-                        return file_id
+                        return str(item.get("fileid", ""))
 
                 logger.debug(f"在目录 {dir_path} 中未找到文件 {filename}")
 
@@ -414,12 +415,11 @@ class PCloudDrive(BaseDrive):
             if result.get("result") == 0:
                 metadata = result.get("metadata", {})
                 return str(metadata.get("folderid", ""))
-            else:
-                raise FunDriveError(
-                    f"创建目录失败: {result.get('error', '未知错误')}",
-                    error_code="PCLOUD_MKDIR_FAILED",
-                    details={"fid": fid, "name": name},
-                )
+            raise FunDriveError(
+                f"创建目录失败: {result.get('error', '未知错误')}",
+                error_code="PCLOUD_MKDIR_FAILED",
+                details={"fid": fid, "name": name},
+            )
 
         except FunDriveError as e:
             logger.error(f"创建目录失败, fid={fid}, name={name}: {e}")
@@ -516,8 +516,7 @@ class PCloudDrive(BaseDrive):
                         files.append(self._convert_metadata_to_drive_file(item))
 
                 return files
-            else:
-                return []
+            return []
 
         except Exception as e:
             logger.error(f"获取目录列表失败, fid={fid}: {e}")
@@ -556,8 +555,7 @@ class PCloudDrive(BaseDrive):
                         dirs.append(self._convert_metadata_to_drive_file(item))
 
                 return dirs
-            else:
-                return []
+            return []
 
         except Exception as e:
             logger.error(f"获取目录列表失败, fid={fid}: {e}")
@@ -746,16 +744,11 @@ class PCloudDrive(BaseDrive):
             # 确定上传文件名：优先使用指定的文件名，否则使用本地文件名
             upload_filename = filename if filename else file_path.name
 
-            # 准备文件数据
-            files = {
-                "file": (
-                    upload_filename,
-                    open(file_path, "rb"),
-                    "application/octet-stream",
-                )
-            }
+            # 准备文件数据。用 with 而不是手工 try/finally 关句柄 —— 任何出口（return、
+            # raise、requests 内部抛错）都走同一条关闭路径。
+            with open(file_path, "rb") as fh:
+                files = {"file": (upload_filename, fh, "application/octet-stream")}
 
-            try:
                 # 发起上传请求
                 response = self.session.post(url, params=params, files=files)
                 response.raise_for_status()
@@ -765,19 +758,14 @@ class PCloudDrive(BaseDrive):
                 # 检查上传结果
                 if result.get("result") == 0:
                     return True
-                else:
-                    error_msg = result.get(
-                        "error", f"上传失败，错误码: {result.get('result')}"
-                    )
-                    raise FunDriveError(
-                        f"pCloud API 错误: {error_msg}",
-                        error_code="PCLOUD_UPLOAD_FAILED",
-                        details={"filepath": filepath, "fid": fid},
-                    )
-
-            finally:
-                # 关闭文件
-                files["file"][1].close()
+                error_msg = result.get(
+                    "error", f"上传失败，错误码: {result.get('result')}"
+                )
+                raise FunDriveError(
+                    f"pCloud API 错误: {error_msg}",
+                    error_code="PCLOUD_UPLOAD_FAILED",
+                    details={"filepath": filepath, "fid": fid},
+                )
 
         except Exception as e:
             logger.error(f"上传文件失败, filepath={filepath}, fid={fid}: {e}")
@@ -799,10 +787,7 @@ class PCloudDrive(BaseDrive):
         """
         try:
             # 对于文件路径，我们需要使用 path 参数而不是 fileid
-            if fid.startswith("/"):
-                params = {"path": fid}
-            else:
-                params = {"fileid": fid}
+            params = {"path": fid} if fid.startswith("/") else {"fileid": fid}
             result = self._make_request("getfilelink", params)
 
             if result.get("result") == 0:
@@ -813,8 +798,7 @@ class PCloudDrive(BaseDrive):
                 if hosts and path:
                     # 构建完整的下载链接
                     host = hosts[0]  # 使用第一个可用的主机
-                    download_url = f"https://{host}{path}"
-                    return download_url
+                    return f"https://{host}{path}"
 
             return ""
 
@@ -976,14 +960,12 @@ class PCloudDrive(BaseDrive):
             result = self._make_request("userinfo")
 
             if result.get("result") == 0:
-                quota_info = {
+                return {
                     "total": result.get("quota", 0),
                     "used": result.get("usedquota", 0),
                     "free": result.get("quota", 0) - result.get("usedquota", 0),
                 }
-                return quota_info
-            else:
-                return {"total": 0, "used": 0, "free": 0}
+            return {"total": 0, "used": 0, "free": 0}
 
         except Exception as e:
             logger.error(f"获取配额信息失败: {e}")
@@ -1044,8 +1026,7 @@ class PCloudDrive(BaseDrive):
                     files.append(self._convert_metadata_to_drive_file(item))
 
                 return files
-            else:
-                return []
+            return []
 
         except Exception as e:
             logger.error(
@@ -1119,8 +1100,7 @@ class PCloudDrive(BaseDrive):
             if result.get("result") == 0:
                 # 返回分享链接字符串，符合测试框架期望
                 return result.get("link", "")
-            else:
-                return None
+            return None
 
         except Exception as e:
             logger.error(
@@ -1174,9 +1154,8 @@ class PCloudDrive(BaseDrive):
 
                 logger.debug(f"获取回收站文件列表成功，共 {len(files)} 个项目")
                 return files
-            else:
-                logger.error(f"获取回收站文件列表失败: {result}")
-                return []
+            logger.error(f"获取回收站文件列表失败: {result}")
+            return []
 
         except Exception as e:
             logger.error(f"获取回收站文件列表异常: {e}")
@@ -1224,9 +1203,8 @@ class PCloudDrive(BaseDrive):
             if result.get("result") == 0:
                 logger.info(f"文件恢复成功: {fid}")
                 return True
-            else:
-                logger.error(f"文件恢复失败: {result}")
-                return False
+            logger.error(f"文件恢复失败: {result}")
+            return False
 
         except Exception as e:
             logger.error(f"恢复文件异常, fid={fid}: {e}")
@@ -1277,9 +1255,8 @@ class PCloudDrive(BaseDrive):
                 else:
                     logger.info("清空回收站成功")
                 return True
-            else:
-                logger.error(f"清空回收站失败: {result}")
-                return False
+            logger.error(f"清空回收站失败: {result}")
+            return False
 
         except Exception as e:
             logger.error(f"清空回收站异常: {e}")

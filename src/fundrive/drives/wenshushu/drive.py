@@ -29,14 +29,14 @@ import base58
 import orjson
 from Cryptodome.Cipher import DES
 from Cryptodome.Util import Padding
-from funget import simple_download
 from farlog import getLogger
+from funget import simple_download
 from tqdm import tqdm
 
 # 项目内部导入
 from fundrive.core import BaseDrive, DriveFile
-from fundrive.core.http import new_session
 from fundrive.core.exceptions import DownloadError, RateLimitError
+from fundrive.core.http import new_session
 from fundrive.core.utils import handle_drive_errors, log_storage_info, validate_fid
 
 logger = getLogger("fundrive")
@@ -210,7 +210,7 @@ class WSSDrive(BaseDrive):
                     timeout=10,
                 )
                 return response.status_code == 200 and response.json().get("code") == 0
-            elif len(share_url.split("/")[-1]) == 11:
+            if len(share_url.split("/")[-1]) == 11:
                 tid = share_url.split("/")[-1]
                 response = self.session.post(
                     url=f"{self.base_url}/ap/task/mgrtask",
@@ -464,9 +464,8 @@ class WSSDrive(BaseDrive):
 
                 logger.info(f"✅ 文件上传成功: {filepath}")
                 return True
-            else:
-                logger.error(f"❌ 文件上传失败: {filepath}")
-                return False
+            logger.error(f"❌ 文件上传失败: {filepath}")
+            return False
 
         except Exception as e:
             logger.error(f"上传文件失败: {e}")
@@ -534,9 +533,8 @@ class WSSDrive(BaseDrive):
             if success:
                 logger.info("✅ 文件下载成功")
                 return True
-            else:
-                logger.error("❌ 文件下载失败")
-                return False
+            logger.error("❌ 文件下载失败")
+            return False
 
         except Exception as e:
             logger.error(f"下载文件失败: {e}")
@@ -654,11 +652,7 @@ class _WSSBaseDrive:
         send_space = int(rsp["data"]["send_space"])
         storage_space = rest_space + send_space
         logger.info(
-            "当前已用空间:{}GB,剩余空间:{}GB,总空间:{}GB".format(
-                round(send_space / 1024**3, 2),
-                round(rest_space / 1024**3, 2),
-                round(storage_space / 1024**3, 2),
-            )
+            f"当前已用空间:{round(send_space / 1024**3, 2)}GB,剩余空间:{round(rest_space / 1024**3, 2)}GB,总空间:{round(storage_space / 1024**3, 2)}GB"
         )
 
     def userinfo(self):
@@ -676,7 +670,7 @@ class Uploader:
         self.chunk_size = chunk_size
         self.file_path = file_path
         self.file_size = os.path.getsize(file_path)
-        self.is_part = True if self.file_size > self.chunk_size else False
+        self.is_part = self.file_size > self.chunk_size
 
     def get_epoch_time(self):
         r = self.session.get(
@@ -809,8 +803,7 @@ class Uploader:
         logger.info(f"公共链接：{rsp['data']['public_url']}")
 
     def sha1_str(self, s):
-        cm = hashlib.sha1(s.encode()).hexdigest()
-        return cm
+        return hashlib.sha1(s.encode()).hexdigest()
 
     def calc_file_hash(self, hash_type, block=None):
         read_size = self.chunk_size if self.is_part else None
@@ -887,7 +880,9 @@ class Uploader:
 
         return name, taskid, boxid, preid, upId
 
-    def upload(self, max_workers=os.cpu_count()):
+    def upload(self, max_workers=None):
+        # 默认值在调用时取，而不是在函数定义时（import 期）取一次就定死。
+        max_workers = max_workers or os.cpu_count()
         try:
             fname, tid, boxid, preid, upId = self.fast()
             pbar = tqdm(

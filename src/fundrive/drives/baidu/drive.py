@@ -2,10 +2,11 @@
 import os
 from typing import Any
 
+from farlog import getLogger
+
 # 第三方库导入
 from fundrives.baidu import BaiduPCSApi, PcsFile
 from funget import download
-from farlog import getLogger
 from funsecret import read_secret
 
 # 项目内部导入

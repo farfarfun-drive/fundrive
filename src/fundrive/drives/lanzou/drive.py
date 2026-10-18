@@ -5,9 +5,9 @@
 import os
 from typing import Any
 
+from farlog import getLogger
 from fundrives.lanzou import LanZouCloud
 from fundrives.lanzou.utils import convert_file_size_to_int
-from farlog import getLogger
 from funsecret import read_secret
 from tqdm import tqdm
 

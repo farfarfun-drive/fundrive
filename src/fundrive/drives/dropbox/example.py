@@ -44,10 +44,9 @@ def comprehensive_test():
                 logger.info(f"✅ {step_name} - 通过")
                 test_results["passed"] += 1
                 return True
-            else:
-                logger.error(f"❌ {step_name} - 失败")
-                test_results["failed"] += 1
-                return False
+            logger.error(f"❌ {step_name} - 失败")
+            test_results["failed"] += 1
+            return False
         except Exception as error:
             logger.error(f"💥 {step_name} - 异常: {error}")
             test_results["failed"] += 1
@@ -340,19 +339,14 @@ def main():
     logger.info("🔗 项目地址: https://github.com/farfarfun-drive/fundrive")
 
     try:
-        if args.test:
-            # 运行综合测试（优先测试核心接口）
-            success = comprehensive_test()
-        else:  # 默认或 --demo
-            # 运行快速演示
-            success = quick_demo()
+        # --test 跑综合测试（优先测试核心接口）；默认或 --demo 跑快速演示
+        success = comprehensive_test() if args.test else quick_demo()
 
         if success:
             logger.success("✨ 示例程序执行成功!")
             return 0
-        else:
-            logger.error("❌ 示例程序执行失败!")
-            return 1
+        logger.error("❌ 示例程序执行失败!")
+        return 1
 
     except KeyboardInterrupt:
         logger.warning("⏹️  用户中断执行")

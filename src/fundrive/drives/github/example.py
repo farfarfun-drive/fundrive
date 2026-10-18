@@ -304,7 +304,7 @@ def run_interactive_demo():
 
         if choice == "0":
             break
-        elif choice == "1":
+        if choice == "1":
             quota = drive.get_quota()
             if quota:
                 print("\n📊 仓库信息:")

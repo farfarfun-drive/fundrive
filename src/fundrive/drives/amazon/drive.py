@@ -205,9 +205,8 @@ class S3Drive(BaseDrive):
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
                 return False
-            else:
-                logger.error(f"检查对象存在性失败: {e}")
-                return False
+            logger.error(f"检查对象存在性失败: {e}")
+            return False
         except Exception as e:
             logger.error(f"检查对象存在性失败: {e}")
             return False
@@ -468,7 +467,7 @@ class S3Drive(BaseDrive):
             # 获取对象元数据
             response = self.s3_client.head_object(Bucket=self.bucket_name, Key=fid)
 
-            drive_file = DriveFile(
+            return DriveFile(
                 fid=fid,
                 name=os.path.basename(fid),
                 size=response["ContentLength"],
@@ -483,15 +482,12 @@ class S3Drive(BaseDrive):
                 },
             )
 
-            return drive_file
-
         except ClientError as e:
             if e.response["Error"]["Code"] == "404":
                 logger.warning(f"文件不存在: {fid}")
                 return None
-            else:
-                logger.error(f"获取文件信息失败: {e}")
-                return None
+            logger.error(f"获取文件信息失败: {e}")
+            return None
         except Exception as e:
             logger.error(f"获取文件信息失败: {e}")
             return None
@@ -530,9 +526,8 @@ class S3Drive(BaseDrive):
                     size=0,
                     ext={"type": "folder", "prefix": dir_prefix},
                 )
-            else:
-                logger.warning(f"目录不存在: {fid}")
-                return None
+            logger.warning(f"目录不存在: {fid}")
+            return None
 
         except Exception as e:
             logger.error(f"获取目录信息失败: {e}")
@@ -978,10 +973,9 @@ class S3Drive(BaseDrive):
         """
         try:
             # 先复制后删除
-            if self.copy_object(source_fid, target_fid):
-                if self.delete(source_fid):
-                    logger.info(f"对象移动成功: {source_fid} -> {target_fid}")
-                    return True
+            if self.copy_object(source_fid, target_fid) and self.delete(source_fid):
+                logger.info(f"对象移动成功: {source_fid} -> {target_fid}")
+                return True
             return False
 
         except Exception as e:

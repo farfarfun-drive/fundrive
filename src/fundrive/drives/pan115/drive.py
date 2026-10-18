@@ -5,13 +5,14 @@
 import os
 import time
 import traceback
+from pathlib import Path
 from typing import Any
 
-from funfile import file_size, file_sha1
-from p115client import P115Client
-from funget import simple_download
 from farlog import getLogger
-from pathlib import Path
+from funfile import file_sha1, file_size
+from funget import simple_download
+from p115client import P115Client
+
 from fundrive.core import BaseDrive, DriveFile
 from fundrive.core.base import get_filepath
 from fundrive.core.exceptions import AuthenticationError, FunDriveError
@@ -391,7 +392,7 @@ class Pan115Drive(BaseDrive):
             这里返回的是 115 接口的原始条目字典，字段名与 ``DriveFile`` 并不一致，
             调用方暂时不能按 ``DriveFile`` 的字段去取值。
         """
-        return [it for it in self._require_client().fs_search(keyword)["data"]]
+        return list(self._require_client().fs_search(keyword)["data"])
 
     def move(
         self,

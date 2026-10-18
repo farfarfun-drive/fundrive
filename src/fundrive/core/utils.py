@@ -10,8 +10,8 @@ import re
 import threading
 import time
 from collections import OrderedDict
-from typing import Any
 from collections.abc import Callable
+from typing import Any
 from urllib.parse import urlsplit, urlunsplit
 
 from farlog import getLogger
@@ -55,10 +55,13 @@ class LRUCache:
                 return None
 
             # 检查TTL
-            if self.ttl and key in self._timestamps:
-                if time.time() - self._timestamps[key] > self.ttl:
-                    self._remove(key)
-                    return None
+            if (
+                self.ttl
+                and key in self._timestamps
+                and time.time() - self._timestamps[key] > self.ttl
+            ):
+                self._remove(key)
+                return None
 
             # 移动到末尾（最近使用）
             value = self._cache.pop(key)
@@ -396,8 +399,7 @@ def format_size(size_bytes: int | float) -> str:
 
     if unit_index == 0:
         return f"{int(size)} {units[unit_index]}"
-    else:
-        return f"{size:.2f} {units[unit_index]}"
+    return f"{size:.2f} {units[unit_index]}"
 
 
 def parse_size(size_str: str) -> int:
@@ -436,7 +438,8 @@ def parse_size(size_str: str) -> int:
     try:
         return int(float(size_str))
     except ValueError:
-        raise ValueError(f"无效的大小格式: {size_str}")
+        # from None：新异常是同一个问题的重述，内层 float() 的报错对调用方没有信息
+        raise ValueError(f"无效的大小格式: {size_str}") from None
 
 
 def sanitize_filename(filename: str) -> str:
@@ -495,7 +498,7 @@ def get_file_hash(
     try:
         hasher = hashlib.new(algorithm)
     except ValueError:
-        raise ValueError(f"不支持的哈希算法: {algorithm}")
+        raise ValueError(f"不支持的哈希算法: {algorithm}") from None
 
     try:
         with open(file_path, "rb") as f:
@@ -503,7 +506,7 @@ def get_file_hash(
                 hasher.update(chunk)
         return hasher.hexdigest()
     except FileNotFoundError:
-        raise FileNotFoundError(f"文件不存在: {file_path}")
+        raise FileNotFoundError(f"文件不存在: {file_path}") from None
 
 
 class ProgressTracker:
@@ -572,8 +575,7 @@ class ProgressTracker:
 
         elapsed = self.elapsed_time
         rate = self.current / elapsed
-        remaining = (self.total - self.current) / rate
-        return remaining
+        return (self.total - self.current) / rate
 
     def __str__(self) -> str:
         """字符串表示"""
@@ -654,12 +656,11 @@ def validate_fid(allow_empty: bool = False) -> Callable:
                     # 根据函数返回类型返回合适的默认值
                     if func.__annotations__.get("return") is bool:
                         return False
-                    elif func.__annotations__.get("return") is str:
+                    if func.__annotations__.get("return") is str:
                         return ""
-                    elif "List" in str(func.__annotations__.get("return", "")):
+                    if "List" in str(func.__annotations__.get("return", "")):
                         return []
-                    else:
-                        return None
+                    return None
 
             return func(*args, **kwargs)
 

@@ -297,7 +297,7 @@ def run_interactive_demo():
 
         if choice == "0" or choice.lower() == "quit":
             break
-        elif choice == "1" or choice.lower() == "ls":
+        if choice == "1" or choice.lower() == "ls":
             files = drive.get_file_list(current_path)
             print_files(files, f"路径 /{current_path} 中的文件")
         elif choice == "2" or choice.lower() == "dir":

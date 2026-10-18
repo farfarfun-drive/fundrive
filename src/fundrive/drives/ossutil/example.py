@@ -282,7 +282,7 @@ def interactive_test():
             if choice == "0":
                 logger.info("👋 再见！")
                 break
-            elif choice == "1":
+            if choice == "1":
                 path = input("请输入目录路径 (留空表示根目录): ").strip()
                 files = drive.get_file_list(path)
                 dirs = drive.get_dir_list(path)

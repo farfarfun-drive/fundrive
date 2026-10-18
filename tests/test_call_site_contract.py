@@ -30,8 +30,7 @@ _DOWNLOAD_FUNCS = {"download_file", "download_dir"}
 
 
 def _iter_python_files():
-    for path in sorted(SRC.rglob("*.py")):
-        yield path
+    yield from sorted(SRC.rglob("*.py"))
 
 
 def _calls_with_forbidden_kw(path: pathlib.Path):

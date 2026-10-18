@@ -137,12 +137,11 @@ class GiteeDrive(BaseDrive):
                 logger.info(f"   仓库描述: {repo_info.get('description', '无')}")
                 logger.info(f"   默认分支: {repo_info.get('default_branch', 'master')}")
                 return True
-            elif response.status_code == 404:
+            if response.status_code == 404:
                 logger.error(f"仓库不存在或无访问权限: {self.repo_str}")
                 return False
-            else:
-                logger.error(f"Gitee API错误: {response.status_code}")
-                return False
+            logger.error(f"Gitee API错误: {response.status_code}")
+            return False
 
         except Exception as e:
             logger.error(f"❌ Gitee连接失败: {e}")
@@ -214,8 +213,7 @@ class GiteeDrive(BaseDrive):
             if success:
                 logger.info(f"✅ 目录创建成功: {dir_path}")
                 return dir_path
-            else:
-                return ""
+            return ""
 
         except Exception as e:
             logger.error(f"创建目录失败: {e}")
@@ -255,9 +253,8 @@ class GiteeDrive(BaseDrive):
             if response.status_code in (200, 204):
                 logger.info(f"✅ 文件删除成功: {fid}")
                 return True
-            else:
-                logger.error(f"删除文件失败: {response.status_code}")
-                return False
+            logger.error(f"删除文件失败: {response.status_code}")
+            return False
 
         except Exception as e:
             logger.error(f"删除文件失败: {e}")
@@ -379,7 +376,7 @@ class GiteeDrive(BaseDrive):
                 logger.warning(f"路径不是文件: {fid}")
                 return None
 
-            drive_file = DriveFile(
+            return DriveFile(
                 fid=data["path"],
                 name=data["name"],
                 size=data["size"],
@@ -391,8 +388,6 @@ class GiteeDrive(BaseDrive):
                     "encoding": data.get("encoding", "base64"),
                 },
             )
-
-            return drive_file
 
         except Exception as e:
             logger.error(f"获取文件信息失败: {e}")
@@ -514,9 +509,8 @@ class GiteeDrive(BaseDrive):
                 if callback:
                     callback(len(file_content), len(file_content))
                 return True
-            else:
-                logger.error(f"上传文件失败: {response.status_code} - {response.text}")
-                return False
+            logger.error(f"上传文件失败: {response.status_code} - {response.text}")
+            return False
 
         except Exception as e:
             logger.error(f"上传文件失败: {e}")

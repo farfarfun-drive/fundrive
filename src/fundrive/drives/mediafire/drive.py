@@ -194,9 +194,7 @@ class MediaFireDrive(BaseDrive):
         signature_string += self.api_key
 
         # 计算MD5哈希
-        signature = hashlib.md5(signature_string.encode("utf-8")).hexdigest()
-
-        return signature
+        return hashlib.md5(signature_string.encode("utf-8")).hexdigest()
 
     def login(self, *args: Any, **kwargs: Any) -> bool:
         """
@@ -246,9 +244,8 @@ class MediaFireDrive(BaseDrive):
                 self.session_token = session_token
                 logger.info("✅ MediaFire登录成功")
                 return True
-            else:
-                logger.error("❌ 未能获取会话令牌")
-                return False
+            logger.error("❌ 未能获取会话令牌")
+            return False
 
         except Exception as e:
             logger.error(f"❌ MediaFire登录失败: {e}")
@@ -337,9 +334,8 @@ class MediaFireDrive(BaseDrive):
                 folder_key = result["response"]["folder_key"]
                 logger.info(f"✅ 目录 {name} 创建成功，ID: {folder_key}")
                 return folder_key
-            else:
-                logger.error(f"❌ 目录 {name} 创建失败")
-                return ""
+            logger.error(f"❌ 目录 {name} 创建失败")
+            return ""
 
         except Exception as e:
             logger.error(f"创建目录失败: {e}")
@@ -620,10 +616,9 @@ class MediaFireDrive(BaseDrive):
                 if result.get("response", {}).get("result") == "Success":
                     logger.info(f"✅ 文件 {filename} 上传成功")
                     return True
-                else:
-                    error_msg = result.get("response", {}).get("message", "未知错误")
-                    logger.error(f"❌ 文件上传失败: {error_msg}")
-                    return False
+                error_msg = result.get("response", {}).get("message", "未知错误")
+                logger.error(f"❌ 文件上传失败: {error_msg}")
+                return False
 
         except Exception as e:
             logger.error(f"上传文件失败: {e}")

@@ -129,8 +129,8 @@ class OSSDrive(BaseDrive):
                 auth,
                 endpoint,
                 bucket_name,
-                connect_timeout=connect_timeout,
                 *args,
+                connect_timeout=connect_timeout,
                 **kwargs,
             )
 
@@ -918,8 +918,7 @@ class OSSDrive(BaseDrive):
                 return ""
 
             # 生成预签名URL，有效期1小时
-            url = self.bucket.sign_url("GET", fid, 3600)
-            return url
+            return self.bucket.sign_url("GET", fid, 3600)
 
         except Exception as e:
             self.logger.error(f"获取下载链接失败: {e}")
@@ -949,8 +948,7 @@ class OSSDrive(BaseDrive):
             upload_path = os.path.join(fid, filename).replace("\\", "/")
 
             # 生成预签名上传URL，有效期1小时
-            url = self.bucket.sign_url("PUT", upload_path, 3600)
-            return url
+            return self.bucket.sign_url("PUT", upload_path, 3600)
 
         except Exception as e:
             self.logger.error(f"获取上传链接失败: {e}")

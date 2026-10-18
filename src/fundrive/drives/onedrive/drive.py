@@ -225,9 +225,8 @@ class OneDrive(BaseDrive):
                 result = response.json()
                 logger.info(f"目录创建成功: {dirname}")
                 return result["id"]
-            else:
-                logger.error(f"目录创建失败: {response.text}")
-                return ""
+            logger.error(f"目录创建失败: {response.text}")
+            return ""
 
         except Exception as e:
             logger.error(f"创建目录失败: {e}")
@@ -244,9 +243,8 @@ class OneDrive(BaseDrive):
             if response.status_code == 204:
                 logger.info("文件/目录删除成功")
                 return True
-            else:
-                logger.error(f"删除失败: {response.text}")
-                return False
+            logger.error(f"删除失败: {response.text}")
+            return False
 
         except Exception as e:
             logger.error(f"删除文件/目录失败: {e}")
@@ -283,9 +281,8 @@ class OneDrive(BaseDrive):
                         files.append(drive_file)
 
                 return files
-            else:
-                logger.error(f"获取文件列表失败: {response.text}")
-                return []
+            logger.error(f"获取文件列表失败: {response.text}")
+            return []
 
         except Exception as e:
             logger.error(f"获取文件列表失败: {e}")
@@ -322,9 +319,8 @@ class OneDrive(BaseDrive):
                         dirs.append(drive_file)
 
                 return dirs
-            else:
-                logger.error(f"获取目录列表失败: {response.text}")
-                return []
+            logger.error(f"获取目录列表失败: {response.text}")
+            return []
 
         except Exception as e:
             logger.error(f"获取目录列表失败: {e}")
@@ -410,8 +406,7 @@ class OneDrive(BaseDrive):
             # 小文件直接上传（< 4MB）
             if file_size < 4 * 1024 * 1024:
                 return self._upload_small_file(filepath, fid, filename, headers)
-            else:
-                return self._upload_large_file(filepath, fid, filename, headers)
+            return self._upload_large_file(filepath, fid, filename, headers)
 
         except Exception as e:
             logger.error(f"上传文件失败: {e}")
@@ -433,9 +428,8 @@ class OneDrive(BaseDrive):
             if response.status_code in [200, 201]:
                 logger.info(f"文件上传成功: {filename}")
                 return True
-            else:
-                logger.error(f"文件上传失败: {response.text}")
-                return False
+            logger.error(f"文件上传失败: {response.text}")
+            return False
 
         except Exception as e:
             logger.error(f"小文件上传失败: {e}")
@@ -564,9 +558,8 @@ class OneDrive(BaseDrive):
 
                 logger.info(f"文件下载成功: {local_path}")
                 return True
-            else:
-                logger.error(f"文件下载失败: {response.text}")
-                return False
+            logger.error(f"文件下载失败: {response.text}")
+            return False
 
         except Exception as e:
             logger.error(f"下载文件失败: {e}")
@@ -613,9 +606,8 @@ class OneDrive(BaseDrive):
 
                 logger.info(f"搜索完成，找到 {len(results)} 个结果")
                 return results
-            else:
-                logger.error(f"搜索失败: {response.text}")
-                return []
+            logger.error(f"搜索失败: {response.text}")
+            return []
 
         except Exception as e:
             logger.error(f"搜索文件失败: {e}")
@@ -640,9 +632,8 @@ class OneDrive(BaseDrive):
                 share_url = result.get("link", {}).get("webUrl")
                 logger.info("分享链接创建成功")
                 return share_url
-            else:
-                logger.error(f"创建分享链接失败: {response.text}")
-                return None
+            logger.error(f"创建分享链接失败: {response.text}")
+            return None
 
         except Exception as e:
             logger.error(f"创建分享链接失败: {e}")
@@ -671,9 +662,8 @@ class OneDrive(BaseDrive):
                     "available": available,
                     "usage_percentage": usage_percentage,
                 }
-            else:
-                logger.error(f"获取配额信息失败: {response.text}")
-                return None
+            logger.error(f"获取配额信息失败: {response.text}")
+            return None
 
         except Exception as e:
             logger.error(f"获取存储配额失败: {e}")

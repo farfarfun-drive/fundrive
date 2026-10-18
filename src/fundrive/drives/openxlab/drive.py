@@ -19,8 +19,8 @@ import os
 from typing import Any
 
 import requests
-from funget import simple_download
 from farlog import getLogger
+from funget import simple_download
 from funsecret import read_secret
 
 from fundrive.core import BaseDrive, DriveFile, ensure_parent_dir
@@ -461,19 +461,15 @@ class OpenXLabDrive(BaseDrive):
                 local_path = os.path.basename(file_path)
 
             # 检查文件是否已存在
-            if os.path.exists(local_path):
-                if not overwrite:
-                    # 检查文件大小是否匹配
-                    existing_size = os.path.getsize(local_path)
-                    expected_size = int(file_info_dict.get("size", 0))
-                    if existing_size == expected_size:
-                        logger.info(f"文件已存在且大小匹配，跳过下载: {local_path}")
-                        return True
-                    else:
-                        logger.warning(
-                            f"文件已存在但大小不匹配，跳过下载: {local_path}"
-                        )
-                        return False
+            if os.path.exists(local_path) and not overwrite:
+                # 检查文件大小是否匹配
+                existing_size = os.path.getsize(local_path)
+                expected_size = int(file_info_dict.get("size", 0))
+                if existing_size == expected_size:
+                    logger.info(f"文件已存在且大小匹配，跳过下载: {local_path}")
+                    return True
+                logger.warning(f"文件已存在但大小不匹配，跳过下载: {local_path}")
+                return False
 
             # 确保目录存在
             ensure_parent_dir(local_path)
@@ -486,9 +482,8 @@ class OpenXLabDrive(BaseDrive):
             if success:
                 logger.info(f"✅ 文件下载成功: {local_path}")
                 return True
-            else:
-                logger.error("❌ 文件下载失败")
-                return False
+            logger.error("❌ 文件下载失败")
+            return False
 
         except Exception as e:
             logger.error(f"下载文件失败: {e}")
@@ -524,9 +519,8 @@ class OpenXLabDrive(BaseDrive):
                     "path": file_path.lstrip("/"),
                     "size": resp.headers.get("content-length", 0),
                 }
-            else:
-                logger.error(f"获取文件信息失败: {resp.status_code}")
-                return None
+            logger.error(f"获取文件信息失败: {resp.status_code}")
+            return None
 
         except Exception as e:
             logger.error(f"获取原始文件信息失败: {e}")

@@ -3,8 +3,8 @@ import os
 from typing import Any
 
 import requests
-from funget import simple_download
 from farlog import getLogger
+from funget import simple_download
 from funsecret import read_secret
 
 from fundrive.core import BaseDrive, DriveFile, ensure_parent_dir
@@ -137,8 +137,7 @@ class ZenodoClient:
         )
 
         try:
-            response = self.session.request(method, url, params=params, **kwargs)
-            return response
+            return self.session.request(method, url, params=params, **kwargs)
         except requests.RequestException as e:
             logger.error(
                 f"API 请求失败 - URL: {sanitize_url(url)} - "
@@ -676,9 +675,8 @@ class ZenodoDrive(BaseDrive):
                 self._is_logged_in = True
                 logger.info("Zenodo 登录成功")
                 return True
-            else:
-                logger.error("Zenodo 登录失败：API 测试请求失败")
-                return False
+            logger.error("Zenodo 登录失败：API 测试请求失败")
+            return False
 
         except Exception as e:
             logger.error(f"Zenodo 登录失败: {e}")
@@ -1036,8 +1034,7 @@ class ZenodoDrive(BaseDrive):
                 deposition_id = str(response.get("id", ""))
                 logger.info(f"存储库创建成功: {name} (ID: {deposition_id})")
                 return deposition_id
-            else:
-                raise RuntimeError("创建存储库失败")
+            raise RuntimeError("创建存储库失败")
 
         except Exception as e:
             logger.error(f"创建目录失败: {e}")
@@ -1113,14 +1110,13 @@ class ZenodoDrive(BaseDrive):
 
                 files = record_info.get("files", [])
                 return any(f.get("key") == filename for f in files)
-            else:
-                # 检查是否为存储库或记录
-                success, _ = self.client.get_deposition(fid)
-                if success:
-                    return True
+            # 检查是否为存储库或记录
+            success, _ = self.client.get_deposition(fid)
+            if success:
+                return True
 
-                success, _ = self.client.get_record(fid)
-                return success
+            success, _ = self.client.get_record(fid)
+            return success
 
         except Exception as e:
             logger.error(f"检查文件存在性失败: {e}")
@@ -1165,12 +1161,11 @@ class ZenodoDrive(BaseDrive):
                 if success:
                     logger.info(f"文件删除成功: {fid}")
                 return success
-            else:
-                # 删除存储库
-                success, _ = self.client.delete_deposition(fid)
-                if success:
-                    logger.info(f"存储库删除成功: {fid}")
-                return success
+            # 删除存储库
+            success, _ = self.client.delete_deposition(fid)
+            if success:
+                logger.info(f"存储库删除成功: {fid}")
+            return success
 
         except Exception as e:
             logger.error(f"删除失败: {e}")

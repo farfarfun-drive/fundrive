@@ -71,18 +71,46 @@ build-backend = "hatchling.build"
 packages = ["src/fundrive"]
 
 [tool.ruff]
-src = [ "src",]
+src = [ "src", "tests",]
 target-version = "py312"
 extend-exclude = [ "*.md",]
 
+# ---------------------------------------------------------------------------
+# 以下 select / ignore 是 fundrive 工作区五个仓库**共用的基线**，逐字相同。
+# 改动任何一条都要同步到另外四个仓库（fundrive / fundrive-alipan / fundrive-baidu /
+# fundrive-lanzou / fundrive-quark），否则"统一"立刻又散掉。
+# 基线的取舍记录在 fundrive-dev 的 docs/project/project-governance/
+# 004-known-deviations.md 第 6 条。
+# ---------------------------------------------------------------------------
 [tool.ruff.lint]
-select = [ "E4", "E7", "E9", "F", "PLE", "T100", "S102",]
+select = [
+    "E4", "E7", "E9",  # pycodestyle 里真正是错误的那部分
+    "F",               # pyflakes
+    "I",               # import 排序
+    "UP",              # 过时写法
+    "B",               # bugbear
+    "SIM",             # 可简化的写法
+    "RET",             # return 路径
+    "C4",              # 推导式与字面量
+    "PLE",             # pylint 的 error 级
+    "T100",            # 漏在代码里的 breakpoint()
+    "S102",            # exec()
+]
 ignore = [
+    # 行宽交给 `ruff format`：中文文案按字符计数很容易超 88，强行折行更难读，
+    # 格式化器也无法拆单个字符串字面量。
     "E501",
     # farlog（基于 loguru）的日志调用用 `{}` 占位符传参，不是 stdlib logging 的
     # `%s` 语法；ruff 把 logger 调用当成 stdlib logging 处理，误判为参数过多。
     "PLE1205",
 ]
+# 基线**没有**开 BLE 与 DTZ，原因不是忘了：
+#   BLE001（blind-except）—— `fundrive` 核心库有 363 处 `except Exception`。包装 25 个云服务 API
+#     时"任何异常都转成返回值"是它的错误处理架构，不是疏忽；逐个收窄是重新设计错误模型，
+#     不是 lint 能顺手做的事。
+#   DTZ（naive datetime）—— 全工作区 9 处，改成 tz-aware 会改变对用户显示的时间，
+#     属于行为变更，要连同"该显示本地时间还是 UTC"一起决定。
+# 哪个仓库目前已经干净，可以自己 extend-select 加严（fundrive-quark 就是这么做的）。
 
 [tool.pytest.ini_options]
 testpaths = [ "tests",]

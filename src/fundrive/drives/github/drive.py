@@ -29,7 +29,6 @@ from funsecret import read_secret
 
 # 项目内部导入
 from fundrive.core import BaseDrive, DriveFile, ensure_parent_dir
-from fundrive.core.http import new_session
 from fundrive.core.exceptions import (
     AuthenticationError,
     AuthorizationError,
@@ -39,6 +38,7 @@ from fundrive.core.exceptions import (
     NetworkError,
     UploadError,
 )
+from fundrive.core.http import new_session
 
 logger = getLogger("fundrive")
 
@@ -291,8 +291,7 @@ class GitHubDrive(BaseDrive):
             if success:
                 logger.info(f"✅ 目录创建成功: {dir_path}")
                 return dir_path
-            else:
-                return ""
+            return ""
 
         except Exception as e:
             logger.error(f"创建目录失败: {e}")
@@ -333,9 +332,8 @@ class GitHubDrive(BaseDrive):
             if response.status_code in (200, 204):
                 logger.info(f"✅ 文件删除成功: {fid}")
                 return True
-            else:
-                logger.error(f"删除文件失败: {response.status_code}")
-                return False
+            logger.error(f"删除文件失败: {response.status_code}")
+            return False
 
         except Exception as e:
             logger.error(f"删除文件失败: {e}")
@@ -462,7 +460,7 @@ class GitHubDrive(BaseDrive):
                 logger.warning(f"路径不是文件: {fid}")
                 return None
 
-            drive_file = DriveFile(
+            return DriveFile(
                 fid=data["path"],
                 name=data["name"],
                 size=data["size"],
@@ -475,8 +473,6 @@ class GitHubDrive(BaseDrive):
                     "encoding": data.get("encoding", "base64"),
                 },
             )
-
-            return drive_file
 
         except Exception as e:
             logger.error(f"获取文件信息失败: {e}")

@@ -1,10 +1,11 @@
+import contextlib
 import os
 import subprocess
 import tempfile
 from typing import Any
 
-from funinstall.install import OSSUtilInstall
 from farlog import getLogger
+from funinstall.install import OSSUtilInstall
 from funsecret import read_secret
 
 from fundrive.core import BaseDrive, DriveFile, ensure_parent_dir
@@ -317,9 +318,8 @@ endpoint={self._endpoint}
                 if result.returncode == 0:
                     logger.success(f"创建目录成功: {dir_path}")
                     return dir_path
-                else:
-                    logger.error(f"创建目录失败: {result.stderr}")
-                    return ""
+                logger.error(f"创建目录失败: {result.stderr}")
+                return ""
             finally:
                 # 清理临时文件
                 os.unlink(temp_file_path)
@@ -355,9 +355,8 @@ endpoint={self._endpoint}
             if result.returncode == 0:
                 logger.success(f"删除成功: {fid}")
                 return True
-            else:
-                logger.error(f"删除失败: {result.stderr}")
-                return False
+            logger.error(f"删除失败: {result.stderr}")
+            return False
 
         except Exception as e:
             logger.error(f"删除失败: {e}")
@@ -461,10 +460,8 @@ endpoint={self._endpoint}
 
             for line in lines:
                 if "Content-Length:" in line:
-                    try:
+                    with contextlib.suppress(ValueError):
                         size = int(line.split(":")[-1].strip())
-                    except ValueError:
-                        pass
                 elif "Last-Modified:" in line:
                     last_modified = line.split(":", 1)[-1].strip()
                 elif "Content-Type:" in line:
@@ -570,9 +567,8 @@ endpoint={self._endpoint}
             if result.returncode == 0:
                 logger.success(f"下载成功: {save_path}")
                 return True
-            else:
-                logger.error(f"下载失败: {result.stderr}")
-                return False
+            logger.error(f"下载失败: {result.stderr}")
+            return False
 
         except Exception as e:
             logger.error(f"下载文件失败: {e}")
@@ -608,9 +604,8 @@ endpoint={self._endpoint}
             if result.returncode == 0:
                 logger.success(f"上传成功: {oss_path}")
                 return True
-            else:
-                logger.error(f"上传失败: {result.stderr}")
-                return False
+            logger.error(f"上传失败: {result.stderr}")
+            return False
 
         except Exception as e:
             logger.error(f"上传文件失败: {e}")
@@ -789,19 +784,15 @@ endpoint={self._endpoint}
                     parts = line.split()
                     for i, part in enumerate(parts):
                         if part.lower() == "size:" and i + 1 < len(parts):
-                            try:
+                            with contextlib.suppress(ValueError):
                                 used_space = int(parts[i + 1])
-                            except ValueError:
-                                pass
                 elif "object count:" in line.lower():
                     # 提取对象数量
                     parts = line.split()
                     for i, part in enumerate(parts):
                         if part.lower() == "count:" and i + 1 < len(parts):
-                            try:
+                            with contextlib.suppress(ValueError):
                                 object_count = int(parts[i + 1])
-                            except ValueError:
-                                pass
 
             return {
                 "total_space": -1,  # OSS没有总空间限制
@@ -1036,9 +1027,8 @@ endpoint={self._endpoint}
 
             if result.returncode == 0:
                 return result.stdout.strip()
-            else:
-                logger.error(f"获取下载链接失败: {result.stderr}")
-                return ""
+            logger.error(f"获取下载链接失败: {result.stderr}")
+            return ""
 
         except Exception as e:
             logger.error(f"获取下载链接失败: {e}")
@@ -1074,9 +1064,8 @@ endpoint={self._endpoint}
 
             if result.returncode == 0:
                 return result.stdout.strip()
-            else:
-                logger.error(f"获取上传链接失败: {result.stderr}")
-                return ""
+            logger.error(f"获取上传链接失败: {result.stderr}")
+            return ""
 
         except Exception as e:
             logger.error(f"获取上传链接失败: {e}")

@@ -1,5 +1,5 @@
 import os
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from typing import Any
 
 from aligo import Aligo
@@ -181,12 +181,10 @@ class AlipanDrive(BaseDrive):
         :param expire_days: 分享链接有效期（天），0表示永久有效
         :param description: 分享描述
         """
-        now = datetime.now(timezone.utc) + timedelta(days=expire_days)
+        now = datetime.now(UTC) + timedelta(days=expire_days)
         expiration = now.isoformat(timespec="milliseconds").replace("+00:00", "Z")
 
-        self.drive.share_files(
-            [fid for fid in fids], share_pwd=password, expiration=expiration
-        )
+        self.drive.share_files(list(fids), share_pwd=password, expiration=expiration)
 
     def save_shared(
         self, shared_url: str, fid: str, password: str | None = None

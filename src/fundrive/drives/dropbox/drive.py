@@ -185,10 +185,13 @@ class DropboxDrive(BaseDrive):
             # 处理目录已存在的情况
             if hasattr(e.error, "is_path") and e.error.is_path():
                 path_error = e.error.get_path()
-                if hasattr(path_error, "is_conflict") and path_error.is_conflict():
-                    if return_if_exist:
-                        self.logger.info(f"目录已存在: {dir_path}")
-                        return dir_path
+                if (
+                    hasattr(path_error, "is_conflict")
+                    and path_error.is_conflict()
+                    and return_if_exist
+                ):
+                    self.logger.info(f"目录已存在: {dir_path}")
+                    return dir_path
             self.logger.error(f"创建目录失败: {e}")
             return ""
         except Exception as e:
@@ -257,9 +260,8 @@ class DropboxDrive(BaseDrive):
                     else None,
                     content_hash=metadata.content_hash,
                 )
-            else:
-                self.logger.warning(f"路径不是文件: {path}")
-                return None
+            self.logger.warning(f"路径不是文件: {path}")
+            return None
 
         except ApiError as e:
             # 文件不存在时返回 None
@@ -302,9 +304,8 @@ class DropboxDrive(BaseDrive):
                     path=metadata.path_display,
                     size=0,
                 )
-            else:
-                self.logger.warning(f"路径不是目录: {path}")
-                return None
+            self.logger.warning(f"路径不是目录: {path}")
+            return None
 
         except ApiError as e:
             # 目录不存在时返回 None

@@ -15,9 +15,9 @@ Gitee驱动使用示例
 作者: FunDrive Team
 """
 
+import argparse
 import os
 import sys
-import argparse
 
 # 添加项目路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../.."))
@@ -320,7 +320,7 @@ def interactive_demo():
             if choice == "0":
                 print("👋 再见！")
                 break
-            elif choice == "1":
+            if choice == "1":
                 path = input("请输入目录路径 (留空表示根目录): ").strip()
 
                 print(f"\n📁 目录: {path or '/'}")

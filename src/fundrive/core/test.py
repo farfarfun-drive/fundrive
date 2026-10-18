@@ -50,10 +50,9 @@ class BaseDriveTest:
                 logger.success(f"✅ {step_name} - 通过")
                 self.test_results["passed"] += 1
                 return True
-            else:
-                logger.error(f"❌ {step_name} - 失败")
-                self.test_results["failed"] += 1
-                return False
+            logger.error(f"❌ {step_name} - 失败")
+            self.test_results["failed"] += 1
+            return False
         except Exception as e:
             logger.error(f"💥 {step_name} - 异常: {e}")
             self.test_results["failed"] += 1
@@ -61,7 +60,9 @@ class BaseDriveTest:
 
     def create_test_file(self, content: str = "测试文件内容") -> str:
         """创建临时测试文件"""
-        temp_file = tempfile.NamedTemporaryFile(
+        # SIM115: delete=False 是故意的 —— 这个函数要把路径交给调用方用于后续上传测试，
+        # 文件不能在离开本函数时就被删掉，所以也不能用上下文管理器。写完立刻 close()。
+        temp_file = tempfile.NamedTemporaryFile(  # noqa: SIM115
             mode="w", delete=False, suffix=".txt", encoding="utf-8"
         )
         temp_file.write(content)
@@ -233,8 +234,7 @@ class BaseDriveTest:
                 logger.info(f"📎 分享链接: {share_link}")
                 logger.info(f"📁 分享文件: {test_file_path}")
                 return True
-            else:
-                return False
+            return False
         except Exception as e:
             logger.error(f"分享测试失败: {e}")
             return False

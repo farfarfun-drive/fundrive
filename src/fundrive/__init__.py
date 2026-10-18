@@ -20,33 +20,38 @@ Dropbox、Amazon S3、GitHub、百度网盘、阿里云盘等。
 """
 
 # 核心类和接口
-from .core import BaseDrive, DriveFile, DriveSnapshot
-from .core import BaseDriveTest, create_drive_tester
-from .core import copy_data
+from .core import (
+    BaseDrive,
+    BaseDriveTest,
+    DriveFile,
+    DriveSnapshot,
+    copy_data,
+    create_drive_tester,
+)
 
 # 异常类
 from .core.exceptions import (
-    FunDriveError,
     AuthenticationError,
     AuthorizationError,
-    NetworkError,
-    RateLimitError,
-    FileNotFoundError,
+    DownloadError,
     FileExistsError,
+    FileNotFoundError,
+    FunDriveError,
     InsufficientStorageError,
     InvalidParameterError,
+    NetworkError,
     OperationNotSupportedError,
+    RateLimitError,
     UploadError,
-    DownloadError,
 )
 
 # 工具函数
 from .core.utils import (
+    ProgressTracker,
     format_size,
+    get_file_hash,
     parse_size,
     sanitize_filename,
-    get_file_hash,
-    ProgressTracker,
 )
 
 # 驱动管理函数
@@ -55,15 +60,16 @@ from .core.utils import (
 # 探测导入，把 boto3/oss2/aligo 等 SDK 全部拖进来。它通过下面的模块级
 # __getattr__ 懒加载，语义不变。
 from .drives import (
+    DRIVE_SPECS,
     get_drive,
     list_available_drives,
     list_missing_drives,
-    DRIVE_SPECS,
 )
 
 # 版本信息 —— 单一来源取自包元数据，避免与 pyproject.toml 漂移
 try:
-    from importlib.metadata import PackageNotFoundError, version as _pkg_version
+    from importlib.metadata import PackageNotFoundError
+    from importlib.metadata import version as _pkg_version
 
     try:
         __version__ = _pkg_version("fundrive")

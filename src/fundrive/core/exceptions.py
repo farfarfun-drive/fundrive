@@ -215,24 +215,23 @@ def handle_api_errors(func: Callable) -> Callable:
 
             if "401" in error_message or "unauthorized" in error_message:
                 raise AuthenticationError(f"认证失败: {e}") from e
-            elif "403" in error_message or "forbidden" in error_message:
+            if "403" in error_message or "forbidden" in error_message:
                 raise AuthorizationError(f"权限不足: {e}") from e
-            elif "404" in error_message or "not found" in error_message:
+            if "404" in error_message or "not found" in error_message:
                 raise FileNotFoundError(f"资源不存在: {e}") from e
-            elif "409" in error_message or "conflict" in error_message:
+            if "409" in error_message or "conflict" in error_message:
                 raise FileExistsError(f"资源冲突: {e}") from e
-            elif "429" in error_message or "rate limit" in error_message:
+            if "429" in error_message or "rate limit" in error_message:
                 raise RateLimitError(f"请求频率过高: {e}") from e
-            elif "507" in error_message or "insufficient storage" in error_message:
+            if "507" in error_message or "insufficient storage" in error_message:
                 raise InsufficientStorageError(f"存储空间不足: {e}") from e
-            elif any(
+            if any(
                 net_err in error_message
                 for net_err in ["connection", "timeout", "network"]
             ):
                 raise NetworkError(f"网络连接失败: {e}") from e
-            else:
-                # 其他异常包装为通用FunDrive异常
-                raise FunDriveError(f"操作失败: {e}") from e
+            # 其他异常包装为通用FunDrive异常
+            raise FunDriveError(f"操作失败: {e}") from e
 
     return wrapper
 
