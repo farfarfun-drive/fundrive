@@ -1,0 +1,26 @@
+version: 2
+
+updates:
+  # 只管 GitHub Actions 的版本。
+  #
+  # 起因：2026-10 手工把 checkout v4 -> v7、upload-artifact v4 -> v7、setup-uv v6 -> v10
+  # 升了一轮 —— v4 跑在已弃用的 Node 20 上，每次构建都打告警，而没人会定期去查。
+  # 这类腐烂必须交给机器盯。
+  #
+  # setup-uv 尤其需要：它从 v8 起不再发布浮动大版本标签（v8/v9/v10 都只有具体版本标签），
+  # 所以 workflow 里钉的是 v10.3.0 —— 钉死的版本不会自己前进，只能靠这里提 PR。
+  #
+  # 不管 Python 依赖：本工作区的依赖都是 `>=` 下界约束，dependabot 对下界约束基本无事可做；
+  # 抬下界有 `funbuild latest-deps` 负责（见 003-release-and-entrypoint.md）。
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: ci
+    open-pull-requests-limit: 3
+    groups:
+      # 一个 PR 带上全部 action 升级，而不是每个 action 一个 PR
+      actions:
+        patterns:
+          - "*"

@@ -63,3 +63,26 @@ jobs:
         with:
           name: dist
           path: dist/
+
+  test-floor:
+    # 在 requires-python 声明的**下界**上再跑一遍测试。上面的 test job 用的是 uv 自己选的
+    # Python（当前会选到 3.14），所以"支持 3.12"这个声明此前从未被实际验证过。
+    #
+    # 这里的版本号必须与 pyproject.toml 的 requires-python 下界一致。谁抬了下界却忘了改这里，
+    # uv sync 会因为解释器不满足 requires-python 直接失败 —— 而不是静默继续测一个
+    # 已经不再支持的版本。
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: astral-sh/setup-uv@v10.3.0
+        with:
+          enable-cache: true
+          python-version: "3.12"
+
+      - name: Sync dependencies
+        run: uv sync --group dev
+
+      - name: Test
+        run: uv run pytest -q
