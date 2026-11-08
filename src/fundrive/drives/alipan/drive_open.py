@@ -18,6 +18,12 @@ logger = getLogger("fundrive")
 CACHE_FILE = Path.home() / ".farfarfun/fundrive/drives/aliopen/refresh_token"
 
 
+class _AliOpenManage(AliOpenManage):
+    def _request(self, method, uri, *args, **kwargs):
+        # Upstream adds a slash before relative paths, which otherwise produces // and 404.
+        return super()._request(method, uri.lstrip("/"), *args, **kwargs)
+
+
 class AliopenDrive(BaseDrive):
     def __init__(self, *args, **kwargs):
         """
@@ -27,7 +33,7 @@ class AliopenDrive(BaseDrive):
         """
         super().__init__(*args, **kwargs)
 
-        self.drive: AliOpenManage = AliOpenManage()
+        self.drive: AliOpenManage = _AliOpenManage()
 
     def login(
         self,
@@ -64,7 +70,7 @@ class AliopenDrive(BaseDrive):
             client_id=client_id,
             client_secret=client_secret,
             refresh_token=refresh_token,
-            is_resource=is_resource,
+            use_resource=is_resource,
         )
         auth = self.drive.auth
         get_access_token = auth.get_access_token
