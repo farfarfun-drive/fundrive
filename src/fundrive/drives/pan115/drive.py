@@ -12,6 +12,8 @@ from farlog import getLogger
 from funfile import file_sha1, file_size
 from funget import simple_download
 from p115client import P115Client
+from p115client.client import check_response
+from p115client.util import share_extract_payload
 
 from fundrive.core import BaseDrive, DriveFile
 from fundrive.core.base import get_filepath
@@ -455,6 +457,55 @@ class Pan115Drive(BaseDrive):
         total = int(data["all_total"]["size"])
         used = int(data["all_use"]["size"])
         return {"total": total, "used": used, "free": total - used}
+
+    def save_shared(
+        self, shared_url: str, fid: str, password: str | None = None
+    ) -> bool:
+        """将分享根目录中的文件和目录转存到目标目录 cid。"""
+        client = self._require_client()
+        try:
+            share = share_extract_payload(shared_url)
+            share["receive_code"] = (
+                password if password is not None else share.get("receive_code", "")
+            )
+            ids: list[str] = []
+            offset = 0
+            while True:
+                data = check_response(
+                    client.share_snap(
+                        {
+                            **share,
+                            "cid": 0,
+                            "limit": 1000,
+                            "offset": offset,
+                        }
+                    )
+                )["data"]
+                entries = data["list"]
+                ids.extend(
+                    str(item["fid"] if "fid" in item else item["cid"])
+                    for item in entries
+                )
+                offset += len(entries)
+                if offset >= int(data["count"]):
+                    break
+                if not entries:
+                    raise ValueError("分享文件列表分页未前进")
+            if not ids:
+                return False
+            check_response(
+                client.share_receive(
+                    {
+                        **share,
+                        "file_id": ",".join(ids),
+                        "cid": fid,
+                    }
+                )
+            )
+            return True
+        except Exception as e:
+            logger.error(f"115分享转存失败 fid={fid}: {e}")
+            return False
 
     def get_download_url(self, fid: str, *args: Any, **kwargs: Any) -> str:
         """

@@ -14,6 +14,7 @@
 
 import sys
 import types
+from unittest.mock import Mock
 
 import pytest
 
@@ -34,12 +35,24 @@ class _FakeP115FileNotFoundError(FileNotFoundError):
     """对应 ``p115client.exception.P115FileNotFoundError``。"""
 
 
+def _check_response(response):
+    if not response.get("state", True):
+        raise ValueError(response.get("error", "115 API error"))
+    return response
+
+
 def _install_stubs():
     """把 p115client / funfile 装成桩模块，让驱动能在裸环境 import。"""
     if "p115client" not in sys.modules:
         mod = types.ModuleType("p115client")
         mod.P115Client = _FakeP115Client
         sys.modules["p115client"] = mod
+        client_mod = types.ModuleType("p115client.client")
+        client_mod.check_response = _check_response
+        sys.modules["p115client.client"] = client_mod
+        util_mod = types.ModuleType("p115client.util")
+        util_mod.share_extract_payload = lambda link: {"share_code": link}
+        sys.modules["p115client.util"] = util_mod
     if "funfile" not in sys.modules:
         try:
             import funfile  # noqa: F401
@@ -153,3 +166,85 @@ def test_operations_require_login():
     drive = pan115_drive.Pan115Drive()
     with pytest.raises(AuthenticationError):
         drive.exist("123")
+
+
+def test_save_shared_receives_all_root_entries_with_password_override(monkeypatch):
+    drive = _drive({"data": []})
+    client = drive._client
+    client.share_snap = Mock(
+        side_effect=[
+            {"state": True, "data": {"count": 3, "list": [{"fid": "1"}, {"cid": "2"}]}},
+            {"state": True, "data": {"count": 3, "list": [{"fid": "3"}]}},
+        ]
+    )
+    client.share_receive = Mock(return_value={"state": True})
+    monkeypatch.setattr(
+        pan115_drive,
+        "share_extract_payload",
+        lambda _: {
+            "share_code": "abc",
+            "receive_code": "in-link",
+        },
+    )
+
+    assert drive.save_shared("https://115.com/s/abc", "99", password="explicit") is True
+    assert client.share_snap.call_args_list[0].args[0] == {
+        "share_code": "abc",
+        "receive_code": "explicit",
+        "cid": 0,
+        "limit": 1000,
+        "offset": 0,
+    }
+    assert client.share_snap.call_args_list[1].args[0]["offset"] == 2
+    client.share_receive.assert_called_once_with(
+        {
+            "share_code": "abc",
+            "receive_code": "explicit",
+            "file_id": "1,2,3",
+            "cid": "99",
+        }
+    )
+
+
+def test_save_shared_empty_share_does_not_submit(monkeypatch):
+    drive = _drive({"data": []})
+    drive._client.share_snap = Mock(
+        return_value={
+            "state": True,
+            "data": {"count": 0, "list": []},
+        }
+    )
+    drive._client.share_receive = Mock()
+    monkeypatch.setattr(
+        pan115_drive, "share_extract_payload", lambda _: {"share_code": "abc"}
+    )
+
+    assert drive.save_shared("abc", "99") is False
+    assert drive._client.share_snap.call_args.args[0]["receive_code"] == ""
+    drive._client.share_receive.assert_not_called()
+
+
+@pytest.mark.parametrize("failed_step", ["share_snap", "share_receive"])
+def test_save_shared_returns_false_on_api_failure(monkeypatch, failed_step):
+    drive = _drive({"data": []})
+    client = drive._client
+    client.share_snap = Mock(
+        return_value={
+            "state": True,
+            "data": {"count": 1, "list": [{"fid": "1"}]},
+        }
+    )
+    client.share_receive = Mock(return_value={"state": True})
+    getattr(client, failed_step).return_value = {"state": False, "error": "failed"}
+    monkeypatch.setattr(
+        pan115_drive, "share_extract_payload", lambda _: {"share_code": "abc"}
+    )
+
+    assert drive.save_shared("abc", "99") is False
+    if failed_step == "share_snap":
+        client.share_receive.assert_not_called()
+
+
+def test_save_shared_requires_login():
+    with pytest.raises(AuthenticationError):
+        pan115_drive.Pan115Drive().save_shared("abc", "99")
