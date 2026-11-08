@@ -1,64 +1,13 @@
-#!/usr/bin/env python3
-
-"""
-阿里云盘驱动测试和演示脚本
-
-支持两种阿里云盘驱动：
-1. AlipanDrive - 基于aligo库的阿里云盘驱动
-2. AliopenDrive - 基于开放API的阿里云盘驱动
-
-使用方法:
-    python example.py --test          # 运行完整测试
-    python example.py --interactive   # 运行交互式演示
-    python example.py --help         # 显示帮助信息
-
-配置方法:
-    # 使用funsecret配置（推荐）
-    funsecret set fundrive alipan refresh_token "your_refresh_token"
-    funsecret set fundrive alipan access_token "your_access_token"
-
-    # 或者设置环境变量
-    export ALIPAN_REFRESH_TOKEN="your_refresh_token"
-    export ALIPAN_ACCESS_TOKEN="your_access_token"
-"""
+"""阿里云盘示例共用的文件操作演示。"""
 
 import argparse
 import os
 import tempfile
+from uuid import uuid4
 
 from farlog import getLogger
 
-from fundrive.drives.alipan import AliopenDrive, AlipanDrive
-
 logger = getLogger("fundrive.alipan.example")
-
-
-def create_alipan_drive():
-    """创建阿里云盘驱动实例（基于aligo）"""
-    try:
-        # 尝试从配置或环境变量获取凭据
-        drive = AlipanDrive()
-        logger.info("✅ 成功创建AlipanDrive实例")
-        return drive
-    except Exception as e:
-        logger.error(f"❌ 创建AlipanDrive实例失败: {e}")
-        logger.info("请确保已正确配置refresh_token:")
-        logger.info("funsecret set fundrive alipan refresh_token 'your_refresh_token'")
-        return None
-
-
-def create_aliopen_drive():
-    """创建阿里云盘开放API驱动实例"""
-    try:
-        # 尝试从配置或环境变量获取凭据
-        drive = AliopenDrive()
-        logger.info("✅ 成功创建AliopenDrive实例")
-        return drive
-    except Exception as e:
-        logger.error(f"❌ 创建AliopenDrive实例失败: {e}")
-        logger.info("请确保已正确配置access_token:")
-        logger.info("funsecret set fundrive alipan access_token 'your_access_token'")
-        return None
 
 
 def run_comprehensive_test(drive, drive_name):
@@ -104,16 +53,18 @@ def run_comprehensive_test(drive, drive_name):
         test_results.append(("获取目录列表", False))
 
     # 测试4: 创建测试目录
-    test_dir_name = "fundrive_test_dir"
+    test_dir_name = f"fundrive_test_{uuid4().hex}"
+    test_dir_fid = None
     logger.info(f"\n4️⃣ 测试创建目录: {test_dir_name}")
     try:
         result = drive.mkdir("root", test_dir_name)
         if result:
+            test_dir_fid = result
             logger.info("✅ 目录创建成功")
             test_results.append(("创建目录", True))
         else:
-            logger.warning("⚠️ 目录可能已存在")
-            test_results.append(("创建目录", True))
+            logger.error("❌ 目录创建失败")
+            test_results.append(("创建目录", False))
     except Exception as e:
         logger.error(f"❌ 创建目录失败: {e}")
         test_results.append(("创建目录", False))
@@ -130,8 +81,10 @@ def run_comprehensive_test(drive, drive_name):
         f.write(test_content)
         temp_file = f.name
 
+    test_file_name = os.path.basename(temp_file)
+    test_file = None
     try:
-        result = drive.upload_file(temp_file, "root", filename="fundrive_test.txt")
+        result = drive.upload_file(temp_file, "root")
         if result:
             logger.info("✅ 文件上传成功")
             test_results.append(("文件上传", True))
@@ -147,7 +100,9 @@ def run_comprehensive_test(drive, drive_name):
     # 测试6: 检查文件是否存在
     logger.info("\n6️⃣ 测试文件存在性检查...")
     try:
-        exists = drive.exist("root", "fundrive_test.txt")
+        files = drive.get_file_list("root")
+        test_file = next((file for file in files if file.name == test_file_name), None)
+        exists = test_file is not None and drive.exist(test_file.fid)
         if exists:
             logger.info("✅ 文件存在性检查通过")
             test_results.append(("文件存在检查", True))
@@ -161,14 +116,6 @@ def run_comprehensive_test(drive, drive_name):
     # 测试7: 获取文件信息
     logger.info("\n7️⃣ 测试获取文件信息...")
     try:
-        # 先获取文件列表找到测试文件
-        files = drive.get_file_list("root")
-        test_file = None
-        for file in files:
-            if file.name == "fundrive_test.txt":
-                test_file = file
-                break
-
         if test_file:
             file_info = drive.get_file_info(test_file.fid)
             if file_info:
@@ -228,6 +175,12 @@ def run_comprehensive_test(drive, drive_name):
         logger.error(f"❌ 删除文件异常: {e}")
         test_results.append(("删除文件", False))
 
+    if test_dir_fid:
+        try:
+            drive.delete(test_dir_fid)
+        except Exception as e:
+            logger.error(f"❌ 清理测试目录失败: {e}")
+
     # 输出测试结果汇总
     logger.info(f"\n📊 {drive_name} 测试结果汇总:")
     passed = 0
@@ -242,31 +195,10 @@ def run_comprehensive_test(drive, drive_name):
     return test_results
 
 
-def run_interactive_demo():
+def run_interactive_demo(drive, drive_name):
     """运行交互式演示"""
     logger.info("\n🎮 阿里云盘驱动交互式演示")
     logger.info("=" * 50)
-
-    # 选择驱动类型
-    print("\n请选择要测试的阿里云盘驱动:")
-    print("1. AlipanDrive (基于aligo库)")
-    print("2. AliopenDrive (基于开放API)")
-
-    while True:
-        choice = input("\n请输入选择 (1/2): ").strip()
-        if choice == "1":
-            drive = create_alipan_drive()
-            drive_name = "AlipanDrive"
-            break
-        if choice == "2":
-            drive = create_aliopen_drive()
-            drive_name = "AliopenDrive"
-            break
-        print("❌ 无效选择，请输入 1 或 2")
-
-    if not drive:
-        logger.error("❌ 无法创建驱动实例，退出演示")
-        return
 
     # 登录
     logger.info(f"\n🔐 正在登录 {drive_name}...")
@@ -349,46 +281,27 @@ def run_interactive_demo():
             print("❌ 无效选择，请输入 1-5")
 
 
-def main():
-    """主函数"""
-    parser = argparse.ArgumentParser(description="阿里云盘驱动测试和演示")
-    parser.add_argument("--test", action="store_true", help="运行完整测试")
+def main(drive_cls):
+    parser = argparse.ArgumentParser(description=f"{drive_cls.__name__} 测试和演示")
+    parser.add_argument(
+        "--test", action="store_true", help="运行完整测试（会写入云盘）"
+    )
     parser.add_argument("--interactive", action="store_true", help="运行交互式演示")
-
     args = parser.parse_args()
 
-    if args.test:
-        logger.info("🚀 开始阿里云盘驱动完整测试")
-
-        # 测试AlipanDrive
-        logger.info("\n" + "=" * 60)
-        logger.info("测试 AlipanDrive (基于aligo库)")
-        logger.info("=" * 60)
-
-        alipan_drive = create_alipan_drive()
-        if alipan_drive:
-            run_comprehensive_test(alipan_drive, "AlipanDrive")
-
-        # 测试AliopenDrive
-        logger.info("\n" + "=" * 60)
-        logger.info("测试 AliopenDrive (基于开放API)")
-        logger.info("=" * 60)
-
-        aliopen_drive = create_aliopen_drive()
-        if aliopen_drive:
-            run_comprehensive_test(aliopen_drive, "AliopenDrive")
-
-        logger.info("\n🎉 阿里云盘驱动测试完成!")
-
-    elif args.interactive:
-        run_interactive_demo()
-
-    else:
+    if not args.test and not args.interactive:
         parser.print_help()
-        logger.info("\n💡 使用提示:")
-        logger.info("  python example.py --test        # 运行完整测试")
-        logger.info("  python example.py --interactive # 运行交互式演示")
+        return
 
+    try:
+        drive = drive_cls()
+    except Exception as exc:
+        logger.error(f"创建 {drive_cls.__name__} 失败: {exc}")
+        return
 
-if __name__ == "__main__":
-    main()
+    if args.test:
+        results = run_comprehensive_test(drive, drive_cls.__name__)
+        if not all(passed for _, passed in results):
+            raise SystemExit(1)
+    else:
+        run_interactive_demo(drive, drive_cls.__name__)

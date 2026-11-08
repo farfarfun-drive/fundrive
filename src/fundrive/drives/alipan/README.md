@@ -13,7 +13,7 @@
 
 ### 2. AliopenDrive
 - **基于**: 阿里云盘开放API
-- **认证方式**: access_token
+- **认证方式**: client_id、client_secret 和 refresh_token（首次可扫码）
 - **功能**: 基础文件操作
 - **稳定性**: 中等
 - **推荐场景**: 企业应用、API集成
@@ -31,25 +31,16 @@ uv add "fundrive[alipan]"
 
 ```bash
 # 配置 AlipanDrive (基于aligo)
-funsecret set fundrive alipan refresh_token "your_refresh_token"
+funsecret write "your_refresh_token" fundrive drives alipan refresh_token
 
 # 配置 AliopenDrive (基于开放API)
-funsecret set fundrive alipan access_token "your_access_token"
-funsecret set fundrive alipan client_id "your_client_id"
-funsecret set fundrive alipan client_secret "your_client_secret"
+funsecret write "your_client_id" fundrive drives aliopen client_id
+funsecret write "your_client_secret" fundrive drives aliopen client_secret
+# 首次扫码时可不配置 refresh_token
+funsecret write "your_refresh_token" fundrive drives aliopen refresh_token
 ```
 
-### 方法二：环境变量
-
-```bash
-# AlipanDrive 环境变量
-export ALIPAN_REFRESH_TOKEN="your_refresh_token"
-
-# AliopenDrive 环境变量
-export ALIPAN_ACCESS_TOKEN="your_access_token"
-export ALIPAN_CLIENT_ID="your_client_id"
-export ALIPAN_CLIENT_SECRET="your_client_secret"
-```
+两个驱动的 `login()` 都从上述 `funsecret` 路径读取凭据；不会读取 `ALIPAN_*` 环境变量。
 
 ## 🔑 获取认证凭据
 
@@ -68,29 +59,31 @@ export ALIPAN_CLIENT_SECRET="your_client_secret"
    ali = Aligo()
    
    # 获取 refresh_token
-   refresh_token = ali.refresh_token
+   refresh_token = ali.token.refresh_token
    print(f"Refresh Token: {refresh_token}")
    ```
 
 3. **保存 refresh_token**:
    ```bash
-   funsecret set fundrive alipan refresh_token "your_refresh_token"
+   funsecret write "your_refresh_token" fundrive drives alipan refresh_token
    ```
 
-### AliopenDrive (access_token)
+### AliopenDrive (开放平台应用凭据)
 
 1. **注册开发者账号**: 访问 [阿里云盘开放平台](https://www.aliyundrive.com/o/getting_started)
 
 2. **创建应用**: 获取 client_id 和 client_secret
 
-3. **OAuth2 授权流程**: 获取 access_token
+3. **登录**: 配置应用凭据后首次运行可扫码；已有 refresh_token 可直接使用
 
 4. **保存凭据**:
    ```bash
-   funsecret set fundrive alipan access_token "your_access_token"
-   funsecret set fundrive alipan client_id "your_client_id"
-   funsecret set fundrive alipan client_secret "your_client_secret"
+   funsecret write "your_client_id" fundrive drives aliopen client_id
+   funsecret write "your_client_secret" fundrive drives aliopen client_secret
+   funsecret write "your_refresh_token" fundrive drives aliopen refresh_token # 已有 token 时
    ```
+
+`aligo` 扫码后默认会缓存 token 到 `~/.aligo/aligo.json`。AliopenDrive 登录成功后自动将 `refresh_token` 缓存到 `~/.farfarfun/fundrive/drives/aliopen/refresh_token`（目录权限 `0700`、文件权限 `0600`），进程内刷新 token 时也会更新缓存。下次登录自动读取，优先级为显式传入的 token、该缓存、`funsecret`；缓存失效时可删除缓存文件或在 `login(refresh_token=...)` 中传入新 token。
 
 ## 💻 使用示例
 
@@ -159,8 +152,8 @@ for file in files[:5]:  # 处理前5个文件
 ### 运行完整测试
 
 ```bash
-cd src/fundrive/drives/alipan
-python example.py --test
+uv run --extra alipan python -m fundrive.drives.alipan.example_aligo --test
+uv run --extra alipan python -m fundrive.drives.alipan.example_open --test
 ```
 
 测试内容包括：
@@ -177,7 +170,8 @@ python example.py --test
 ### 运行交互式演示
 
 ```bash
-python example.py --interactive
+uv run --extra alipan python -m fundrive.drives.alipan.example_aligo --interactive
+uv run --extra alipan python -m fundrive.drives.alipan.example_open --interactive
 ```
 
 交互式演示支持：

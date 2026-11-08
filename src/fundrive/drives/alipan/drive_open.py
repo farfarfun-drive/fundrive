@@ -1,5 +1,7 @@
-# 标准库导入
+import os
+import tempfile
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
 from typing import Any
 
 from farlog import getLogger
@@ -13,6 +15,7 @@ from fundrive.core import BaseDrive, DriveFile
 from fundrive.core.base import get_filepath
 
 logger = getLogger("fundrive")
+CACHE_FILE = Path.home() / ".farfarfun/fundrive/drives/aliopen/refresh_token"
 
 
 class AliopenDrive(BaseDrive):
@@ -41,8 +44,14 @@ class AliopenDrive(BaseDrive):
         :param is_resource: 是否使用资源盘，默认False
         :return: 登录是否成功
         """
-        refresh_token = refresh_token or read_secret(
-            "fundrive", "drives", "aliopen", "refresh_token"
+        refresh_token = (
+            refresh_token
+            or (
+                CACHE_FILE.read_text(encoding="utf-8").strip()
+                if CACHE_FILE.exists()
+                else None
+            )
+            or read_secret("fundrive", "drives", "aliopen", "refresh_token")
         )
         client_id = client_id or read_secret(
             "fundrive", "drives", "aliopen", "client_id"
@@ -57,6 +66,31 @@ class AliopenDrive(BaseDrive):
             refresh_token=refresh_token,
             is_resource=is_resource,
         )
+        auth = self.drive.auth
+        get_access_token = auth.get_access_token
+        cached_token = None
+
+        def get_and_cache_token(*args, **kwargs):
+            nonlocal cached_token
+            result = get_access_token(*args, **kwargs)
+            token = result.get("refresh_token")
+            if token and token != cached_token:
+                CACHE_FILE.parent.mkdir(parents=True, exist_ok=True, mode=0o700)
+                CACHE_FILE.parent.chmod(0o700)
+                fd, temp_path = tempfile.mkstemp(dir=CACHE_FILE.parent)
+                try:
+                    with os.fdopen(fd, "w", encoding="utf-8") as cache:
+                        cache.write(token)
+                    os.replace(temp_path, CACHE_FILE)
+                finally:
+                    Path(temp_path).unlink(missing_ok=True)
+                # Upstream auth otherwise keeps using the original token after rotation.
+                auth._refresh_token = token
+                cached_token = token
+            return result
+
+        auth.get_access_token = get_and_cache_token
+        auth.get_access_token()
         return True
 
     def mkdir(
