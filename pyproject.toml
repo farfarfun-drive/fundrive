@@ -1,6 +1,6 @@
 [project]
 name = "fundrive"
-version = "2.0.92"
+version = "2.0.93"
 description = "统一的网盘/云存储操作接口框架 - 一套 API 打通 20+ 服务，涵盖 Google Drive、OneDrive、S3、百度网盘、阿里云盘、蓝奏云、WebDAV 等"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -9,9 +9,9 @@ dependencies = [
  "requests>=2.32.4",
  "tqdm>=4.67.1",
  "urllib3>=2.0",
- "funsecret>=1.4.96",
- "farlog>=1.1.8",
- "funget>=1.1.69",
+ "funsecret>=1.4.100",
+ "farlog>=1.1.13",
+ "funget>=1.2.0",
 ]
 license = "MIT"
 license-files = ["LICENSE"]
@@ -119,3 +119,6 @@ addopts = "-q --strict-markers"
 
 [tool.ruff.lint.per-file-ignores]
 "src/fundrive/drives/*/example.py" = [ "T201",]
+
+[tool.funbuild]
+latest-packages = ["farlog","funget","funsecret"]
