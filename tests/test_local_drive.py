@@ -19,7 +19,7 @@ import os
 import pytest
 
 from fundrive import get_drive
-from fundrive.core import DriveFile
+from fundrive.core import BaseDrive, DriveFile
 
 
 @pytest.fixture
@@ -103,6 +103,23 @@ def test_upload_dir_roundtrips_through_returned_fids(drive, tree):
     assert (tree / "uploaded" / "sub" / "b.txt").is_file()
 
 
+def test_upload_dir_respects_recursion_and_overwrite(drive, tree):
+    dest = drive.mkdir(".", "uploaded")
+    (tree / "uploaded" / "a.txt").write_text("old")
+    assert drive.upload_dir("src", dest, recursion=False, overwrite=True) is True
+    assert (tree / "uploaded" / "a.txt").read_text() == "hello"
+    assert not (tree / "uploaded" / "sub").exists()
+
+
+def test_directory_transfers_report_partial_failure(drive, tree, monkeypatch):
+    monkeypatch.setattr(drive, "download_file", lambda *args, **kwargs: False)
+    assert BaseDrive.download_dir(drive, "src", "out", recursion=False) is False
+
+    monkeypatch.setattr(drive, "upload_file", lambda *args, **kwargs: False)
+    dest = drive.mkdir(".", "uploaded")
+    assert drive.upload_dir("src", dest, recursion=False) is False
+
+
 def test_download_file_to_current_dir_without_save_dir(drive, tree):
     """不给 save_dir 时应落到当前目录，而不是 os.makedirs("") 崩掉。"""
     assert drive.download_file("src/a.txt") is True
@@ -182,6 +199,21 @@ class TestRootPathSandbox:
     def test_dotdot_traversal_is_rejected(self, sandboxed):
         with pytest.raises(ValueError, match="越出 root_path"):
             sandboxed._resolve("../../../etc/passwd")
+
+    def test_symlink_outside_root_is_rejected(self, sandboxed, tree):
+        (tree / "src" / "escape").symlink_to(tree, target_is_directory=True)
+        with pytest.raises(ValueError, match="越出 root_path"):
+            sandboxed.delete("escape/a.txt")
+
+    def test_created_targets_cannot_leave_root(self, sandboxed, tree):
+        with pytest.raises(ValueError, match="越出 root_path"):
+            sandboxed.mkdir("/", "../outside")
+        with pytest.raises(ValueError, match="越出 root_path"):
+            sandboxed.upload_file(
+                str(tree / "src" / "a.txt"), "/", filename="../outside"
+            )
+        with pytest.raises(ValueError, match="filename"):
+            sandboxed.rename("a.txt", "../outside")
 
     def test_returned_fids_are_accepted_back(self, sandboxed, tree):
         """驱动吐出的绝对 fid 必须能再传回去，且不被当成相对根的路径。"""

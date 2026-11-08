@@ -1,6 +1,6 @@
 [project]
 name = "fundrive"
-version = "2.0.94"
+version = "2.0.96"
 description = "统一的网盘/云存储操作接口框架 - 一套 API 打通 20+ 服务，涵盖 Google Drive、OneDrive、S3、百度网盘、阿里云盘、蓝奏云、WebDAV 等"
 readme = "README.md"
 requires-python = ">=3.12"

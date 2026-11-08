@@ -60,7 +60,7 @@ class OSDrive(BaseDrive):
             **kwargs: 透传给 ``BaseDrive`` 的可变关键字参数
         """
         super().__init__(*args, **kwargs)
-        self.root_path = os.path.abspath(root_path) if root_path else None
+        self.root_path = os.path.realpath(root_path) if root_path else None
         self._root_fid = self.root_path or os.path.abspath(os.curdir)
 
     # ------------------------------------------------------------------ 内部
@@ -89,8 +89,9 @@ class OSDrive(BaseDrive):
             if os.path.isabs(fid)
             else os.path.abspath(os.path.join(self.root_path, fid))
         )
-        if candidate != self.root_path and not candidate.startswith(
-            self.root_path + os.sep
+        if (
+            os.path.commonpath((self.root_path, os.path.realpath(candidate)))
+            != self.root_path
         ):
             raise ValueError(f"路径越出 root_path: {fid}")
         return candidate
@@ -135,7 +136,7 @@ class OSDrive(BaseDrive):
     ) -> str:
         """在 fid 下创建名为 name 的子目录，返回新目录的 fid（绝对路径）。"""
         parent = self._resolve(fid)
-        target = os.path.join(parent, name)
+        target = self._resolve(os.path.join(parent, name))
         if os.path.isdir(target):
             if return_if_exist:
                 return target
@@ -269,8 +270,10 @@ class OSDrive(BaseDrive):
 
         target_dir = self._resolve(fid)
         os.makedirs(target_dir, exist_ok=True)
-        target = os.path.join(
-            target_dir, kwargs.get("filename") or os.path.basename(filepath)
+        target = self._resolve(
+            os.path.join(
+                target_dir, kwargs.get("filename") or os.path.basename(filepath)
+            )
         )
 
         if os.path.exists(target) and not overwrite:
@@ -440,7 +443,11 @@ class OSDrive(BaseDrive):
         if not os.path.exists(source):
             logger.error(f"源不存在: {source}")
             return False
-        target = os.path.join(os.path.dirname(source.rstrip(os.sep)), new_name)
+        if os.path.basename(new_name) != new_name or new_name in {"", ".", ".."}:
+            raise ValueError(f"new_name must be a filename: {new_name}")
+        target = self._resolve(
+            os.path.join(os.path.dirname(source.rstrip(os.sep)), new_name)
+        )
         os.rename(source, target)
         logger.info(f"重命名: {source} -> {target}")
         return True

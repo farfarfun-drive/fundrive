@@ -429,33 +429,35 @@ class BaseDrive:
             return False
         if not os.path.exists(save_dir):
             os.makedirs(save_dir, exist_ok=True)
+        success = True
         for file in self.get_file_list(fid):
             if ignore_filter and ignore_filter(file.name):
                 continue
-            _drive_path = file.fid
             # 不能把 *args 一起透传：它会去填第一个位置形参（也是 fid），
             # 只要调用方传了任何位置参数就是
             # TypeError: got multiple values for argument 'fid'。
-            self.download_file(
+            if not self.download_file(
                 fid=file.fid,
                 save_dir=save_dir,
                 filename=os.path.basename(file.name),
                 overwrite=overwrite,
                 **kwargs,
-            )
+            ):
+                success = False
         if not recursion:
-            return True
+            return success
 
         for file in self.get_dir_list(fid):
-            self.download_dir(
+            if not self.download_dir(
                 fid=file.fid,
                 save_dir=os.path.join(save_dir, os.path.basename(file.name)),
                 overwrite=overwrite,
                 recursion=recursion,
                 ignore_filter=ignore_filter,
                 **kwargs,
-            )
-        return True
+            ):
+                success = False
+        return success
 
     def upload_file(self, filepath: str, fid: str, *args: Any, **kwargs: Any) -> bool:
         """
@@ -492,21 +494,27 @@ class BaseDrive:
         :return: 上传是否成功
         """
         dir_map = {file.name: file.fid for file in self.get_dir_list(fid=fid)}
+        success = True
         for file in os.listdir(filedir):
             filepath = os.path.join(filedir, file)
             if os.path.isfile(filepath):
-                self.upload_file(filepath, fid)
-            elif os.path.isdir(filepath):
+                if not self.upload_file(filepath, fid, overwrite=overwrite, **kwargs):
+                    success = False
+            elif recursion and os.path.isdir(filepath):
                 if file not in dir_map:
                     dir_map[file] = self.mkdir(fid, file)
-                self.upload_dir(
+                if not dir_map[file]:
+                    success = False
+                    continue
+                if not self.upload_dir(
                     filepath,
                     dir_map[file],
                     recursion=recursion,
                     overwrite=overwrite,
                     **kwargs,
-                )
-        return True
+                ):
+                    success = False
+        return success
 
     def share(
         self,
