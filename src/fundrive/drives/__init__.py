@@ -64,6 +64,7 @@ DRIVE_SPECS: dict[str, DriveSpec] = {
     "alipan_open": DriveSpec(".alipan", "AliopenDrive", "alipan"),
     "pan115": DriveSpec(".pan115", "Pan115Drive", "pan115"),
     "115": DriveSpec(".pan115", "Pan115Drive", "pan115"),
+    "cmcloud": DriveSpec(".cmcloud", "CMCloudDrive"),
     "oss": DriveSpec(".oss", "OSSDrive", "oss"),
     "ossutil": DriveSpec(".ossutil", "OSSUtilDrive", "ossutil"),
     # 🔧 通用协议和工具
@@ -243,6 +244,7 @@ __all__ = [
     "AlipanDrive",
     "AliopenDrive",
     "Pan115Drive",
+    "CMCloudDrive",
     "OSSDrive",
     "OSSUtilDrive",
     "WebDavDrive",

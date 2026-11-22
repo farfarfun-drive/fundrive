@@ -60,6 +60,15 @@ def test_no_duplicate_class_module_pairs_with_different_extras():
         assert len(extras) == 1, f"{target} 在不同 key 下 extra 不一致: {entries}"
 
 
+def test_all_spec_classes_in_dunder_all():
+    """注册表里声明的每个驱动类都必须在 fundrive.drives.__all__ 中导出。"""
+    import fundrive.drives as drives_mod
+
+    declared = set(drives_mod.__all__)
+    missing = sorted({spec.cls for spec in DRIVE_SPECS.values()} - declared)
+    assert not missing, f"以下驱动类已在 DRIVE_SPECS 注册但漏在 __all__ 中: {missing}"
+
+
 def test_declared_extras_exist_in_pyproject():
     """注册表引用的每个 pip extra 都必须在 pyproject.toml 里真实存在。"""
     try:

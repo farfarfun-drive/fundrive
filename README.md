@@ -70,6 +70,7 @@ FunDrive 是一个统一的网盘操作接口框架，旨在提供一个标准�
 | 18 | **[OpenXLab](src/fundrive/drives/openxlab/README.md)** | ✅ | ✅ | ✅ | ✅ | 🎉 | `fundrive` |
 | 19 | **[天池](src/fundrive/drives/tianchi/README.md)** | ✅ | ✅ | ✅ | ✅ | 🎉 | `fundrive` |
 | 20 | **[文叔叔](src/fundrive/drives/wenshushu/README.md)** | ✅ | ✅ | ✅ | ✅ | 🎉 | `fundrive[wenshushu]` |
+| 21 | **[中国移动云盘](src/fundrive/drives/cmcloud/README.md)** | 部分 | - | - | - | 需外部 IDaaS 授权票据 | `fundrive` |
 
 ### 📋 功能实现详情
 
