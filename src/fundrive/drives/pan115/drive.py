@@ -1,5 +1,5 @@
 """
-115网盘驱动，基于 p115client 实现。
+115网盘驱动，基于 fundrive-pan115（fundrives.pan115）实现。
 """
 
 import os
@@ -9,11 +9,11 @@ from pathlib import Path
 from typing import Any
 
 from farlog import getLogger
+from fundrives.pan115 import P115Client
+from fundrives.pan115.client import check_response
+from fundrives.pan115.util import share_extract_payload
 from funfile import file_sha1, file_size
 from funget import simple_download
-from p115client import P115Client
-from p115client.client import check_response
-from p115client.util import share_extract_payload
 
 from fundrive.core import BaseDrive, DriveFile
 from fundrive.core.base import get_filepath
@@ -54,7 +54,7 @@ def _convert_info_to_dir(
 
 class Pan115Drive(BaseDrive):
     """
-    115网盘驱动，基于 p115client 实现
+    115网盘驱动，基于 fundrive-pan115（fundrives.pan115）实现
 
     ``fid`` 用 115 自己的 ID 体系：目录用 ``cid``，文件用 ``fid``，根目录是
     ``"0"``。几乎所有接口都要求先 :meth:`login`。

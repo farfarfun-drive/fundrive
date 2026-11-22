@@ -6,10 +6,10 @@
 错误全部被翻译成"这个文件不存在"——上层据此判断可以安全覆盖/创建，是会丢
 数据的那类误判。
 
-``p115client`` 只支持 Python >= 3.12 且是可选依赖，CI 的裸环境里不装它，
-所以这里在 import 驱动之前把它和 ``funfile`` 替换成桩模块。``p115client``
-的 ``P115FileNotFoundError`` 继承内置 ``FileNotFoundError``，桩里保持同样的
-继承关系，这正是"资源确实不存在"的唯一可靠信号。
+``fundrive-pan115``（``fundrives.pan115``）只支持 Python >= 3.12 且是可选依赖，
+CI 的裸环境里不装它，所以这里在 import 驱动之前把它和 ``funfile`` 替换成桩模块。
+``fundrives.pan115`` 的 ``P115FileNotFoundError`` 继承内置 ``FileNotFoundError``，
+桩里保持同样的继承关系，这正是"资源确实不存在"的唯一可靠信号。
 """
 
 import sys
@@ -32,7 +32,7 @@ class _FakeP115Client:
 
 
 class _FakeP115FileNotFoundError(FileNotFoundError):
-    """对应 ``p115client.exception.P115FileNotFoundError``。"""
+    """对应 ``fundrives.pan115.exception.P115FileNotFoundError``。"""
 
 
 def _check_response(response):
@@ -42,17 +42,24 @@ def _check_response(response):
 
 
 def _install_stubs():
-    """把 p115client / funfile 装成桩模块，让驱动能在裸环境 import。"""
-    if "p115client" not in sys.modules:
-        mod = types.ModuleType("p115client")
-        mod.P115Client = _FakeP115Client
-        sys.modules["p115client"] = mod
-        client_mod = types.ModuleType("p115client.client")
-        client_mod.check_response = _check_response
-        sys.modules["p115client.client"] = client_mod
-        util_mod = types.ModuleType("p115client.util")
-        util_mod.share_extract_payload = lambda link: {"share_code": link}
-        sys.modules["p115client.util"] = util_mod
+    """把 fundrives.pan115 / funfile 装成桩模块，让驱动能在裸环境 import。"""
+    if "fundrives.pan115" not in sys.modules:
+        try:
+            import fundrives.pan115  # noqa: F401
+        except ImportError:
+            if "fundrives" not in sys.modules:
+                ns = types.ModuleType("fundrives")
+                ns.__path__ = []
+                sys.modules["fundrives"] = ns
+            mod = types.ModuleType("fundrives.pan115")
+            mod.P115Client = _FakeP115Client
+            sys.modules["fundrives.pan115"] = mod
+            client_mod = types.ModuleType("fundrives.pan115.client")
+            client_mod.check_response = _check_response
+            sys.modules["fundrives.pan115.client"] = client_mod
+            util_mod = types.ModuleType("fundrives.pan115.util")
+            util_mod.share_extract_payload = lambda link: {"share_code": link}
+            sys.modules["fundrives.pan115.util"] = util_mod
     if "funfile" not in sys.modules:
         try:
             import funfile  # noqa: F401
