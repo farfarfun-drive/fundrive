@@ -21,17 +21,49 @@ from fundrive.core.exceptions import AuthenticationError, FunDriveError
 
 logger = getLogger("fundrive")
 
+_DEFAULT_PAGE_LIMIT = 1150
+
+
+def _first_present(it: dict[str, Any], *keys: str) -> Any:
+    for key in keys:
+        if key in it and it[key] is not None:
+            return it[key]
+    return None
+
+
+def _first_nonempty_str(it: dict[str, Any], *keys: str) -> str:
+    for key in keys:
+        val = it.get(key)
+        if val is not None:
+            text = str(val)
+            if text:
+                return text
+    return ""
+
+
+def _is_dir_entry(it: dict[str, Any]) -> bool:
+    fc = it.get("fc")
+    if fc is not None and str(fc).strip() != "":
+        return str(fc).strip() == "0"
+    return not it.get("fid")
+
 
 def _convert_info_to_file(
-    it: dict, dirname: str | None = None, *args, **kwargs
+    it: dict[str, Any], dirname: str | None = None, *args: Any, **kwargs: Any
 ) -> DriveFile:
+    fid = _first_nonempty_str(it, "fid", "id")
+    name = _first_nonempty_str(it, "n", "name", "ns", "fn")
+    raw_size = _first_present(it, "s", "size", "fs")
+    size = int(raw_size) if raw_size is not None else None
+    raw_sha = _first_present(it, "sha", "sha1")
+    sha = str(raw_sha) if raw_sha is not None and str(raw_sha) != "" else None
     return DriveFile(
-        fid=it["fid"],
-        name=it["n"],
-        size=it["s"],
-        sha=it["sha"],
-        time=it["t"],
-        pc=it["pc"],
+        fid=fid,
+        name=name,
+        size=size,
+        sha=sha,
+        time=_first_present(it, "t", "te", "tp"),
+        pc=it.get("pc"),
         isfile=True,
         isdir=False,
         dirname=dirname,
@@ -39,13 +71,15 @@ def _convert_info_to_file(
 
 
 def _convert_info_to_dir(
-    it: dict, dirname: str | None = None, *args, **kwargs
+    it: dict[str, Any], dirname: str | None = None, *args: Any, **kwargs: Any
 ) -> DriveFile:
+    fid = _first_nonempty_str(it, "cid", "fid", "id")
+    name = _first_nonempty_str(it, "ns", "name", "n")
     return DriveFile(
-        fid=it["cid"],
-        name=it["ns"],
-        time=it["t"],
-        pc=it["pc"],
+        fid=fid,
+        name=name,
+        time=_first_present(it, "t", "te", "tp"),
+        pc=it.get("pc"),
         isfile=False,
         isdir=True,
         dirname=dirname,
@@ -204,29 +238,157 @@ class Pan115Drive(BaseDrive):
             logger.error(f"删除文件失败 {fid}: {e}")
             return False
 
-    def get_all_list(self, fid: str, *args: Any, **kwargs: Any) -> list[DriveFile]:
+    def get_all_list(
+        self,
+        fid: str,
+        *args: Any,
+        timeout: float | None = None,
+        limit: int = _DEFAULT_PAGE_LIMIT,
+        **kwargs: Any,
+    ) -> list[DriveFile]:
         """
-        获取目录下的全部条目（文件 + 子目录）
+        获取目录下的全部条目（文件 + 子目录），自动拉取完整分页。
 
-        为避免触发 115 的频率限制，每次调用前固定 sleep 1 秒。
+        为避免触发 115 的频率限制，每页请求前固定 sleep 1 秒。
 
         Args:
             fid (str): 目录的 cid
             *args: 可变位置参数
-            **kwargs: 可变关键字参数
+            timeout (float, optional): 透传给底层 ``fs_files`` 的单页请求超时（秒）
+            limit (int): 单页条数上限，默认 1150
+            **kwargs: 其他透传给底层 ``fs_files`` 的关键字参数
 
         Returns:
-            list[DriveFile]: 条目列表，用 ``isfile`` / ``isdir`` 区分类型
+            list[DriveFile]: 完整目录条目列表，用 ``isfile`` / ``isdir`` 区分类型
+
+        Raises:
+            AuthenticationError: 尚未登录
+            ValueError: ``limit <= 0``
+            FunDriveError: 响应格式异常、缺少条目列表或分页未前进
         """
-        time.sleep(1)
+        if limit <= 0:
+            raise ValueError("limit must be positive")
+        client = self._require_client()
+        request_kwargs = dict(kwargs)
+        if timeout is not None:
+            request_kwargs["timeout"] = timeout
+
         result: list[DriveFile] = []
-        response = self._require_client().fs_files(fid)
-        dirname = "/".join([i["name"] for i in response["path"][1:]])
-        for it in response["data"]:
-            if it["fc"] == 0:
-                result.append(_convert_info_to_dir(it, dirname=dirname))
+        offset = 0
+        while True:
+            time.sleep(1)
+            payload = {
+                "cid": fid,
+                "limit": limit,
+                "offset": offset,
+                "show_dir": 1,
+            }
+            response = client.fs_files(payload, **request_kwargs)
+            if not isinstance(response, dict):
+                raise FunDriveError(
+                    f"读取 115 目录失败 fid={fid}: 响应格式无效",
+                    error_code="PAN115_LIST_INVALID_RESPONSE",
+                    details={"fid": fid, "offset": offset},
+                )
+            response = check_response(response)
+            if not isinstance(response, dict) or response.get("state") is False:
+                raise FunDriveError(
+                    f"读取 115 目录失败 fid={fid}: 服务端返回失败响应",
+                    error_code="PAN115_LIST_FAILED",
+                    details={"fid": fid, "offset": offset},
+                )
+            entries = response.get("data")
+            if not isinstance(entries, list):
+                raise FunDriveError(
+                    f"读取 115 目录失败 fid={fid}: 响应缺少条目列表",
+                    error_code="PAN115_LIST_INVALID_RESPONSE",
+                    details={"fid": fid, "offset": offset},
+                )
+
+            raw_offset = response.get("offset")
+            if raw_offset is not None:
+                try:
+                    resp_offset = int(raw_offset)
+                except (TypeError, ValueError) as e:
+                    raise FunDriveError(
+                        f"读取 115 目录失败 fid={fid}: offset 字段无效 ({raw_offset!r})",
+                        error_code="PAN115_LIST_INVALID_RESPONSE",
+                        details={
+                            "fid": fid,
+                            "offset": offset,
+                            "response_offset": raw_offset,
+                        },
+                    ) from e
+                if resp_offset != offset:
+                    raise FunDriveError(
+                        f"读取 115 目录失败 fid={fid}: 分页未前进 (expected offset={offset}, got {resp_offset})",
+                        error_code="PAN115_LIST_STALLED",
+                        details={
+                            "fid": fid,
+                            "offset": offset,
+                            "response_offset": resp_offset,
+                        },
+                    )
+
+            raw_count = response.get("count")
+            total_count: int | None = None
+            if raw_count is not None:
+                try:
+                    total_count = int(raw_count)
+                except (TypeError, ValueError) as e:
+                    raise FunDriveError(
+                        f"读取 115 目录失败 fid={fid}: count 字段无效 ({raw_count!r})",
+                        error_code="PAN115_LIST_INVALID_RESPONSE",
+                        details={"fid": fid, "offset": offset, "count": raw_count},
+                    ) from e
+                if total_count < 0:
+                    raise FunDriveError(
+                        f"读取 115 目录失败 fid={fid}: count 为负数 ({total_count})",
+                        error_code="PAN115_LIST_INVALID_RESPONSE",
+                        details={"fid": fid, "offset": offset, "count": total_count},
+                    )
+
+            path_items = response.get("path")
+            if isinstance(path_items, list) and len(path_items) > 1:
+                dirname = "/".join(
+                    str(p.get("name", ""))
+                    for p in path_items[1:]
+                    if isinstance(p, dict)
+                )
             else:
-                result.append(_convert_info_to_file(it, dirname=dirname))
+                dirname = ""
+
+            for it in entries:
+                if not isinstance(it, dict):
+                    raise FunDriveError(
+                        f"读取 115 目录失败 fid={fid}: 条目格式无效",
+                        error_code="PAN115_LIST_INVALID_RESPONSE",
+                        details={"fid": fid, "offset": offset},
+                    )
+                if _is_dir_entry(it):
+                    result.append(_convert_info_to_dir(it, dirname=dirname))
+                else:
+                    result.append(_convert_info_to_file(it, dirname=dirname))
+
+            if total_count is not None:
+                if offset + len(entries) >= total_count:
+                    break
+                if not entries:
+                    raise FunDriveError(
+                        f"读取 115 目录失败 fid={fid}: 分页未前进 (offset={offset}, count={total_count})",
+                        error_code="PAN115_LIST_STALLED",
+                        details={
+                            "fid": fid,
+                            "offset": offset,
+                            "count": total_count,
+                        },
+                    )
+                offset += len(entries)
+            else:
+                if not entries or len(entries) < limit:
+                    break
+                offset += len(entries)
+
         return result
 
     def get_file_list(self, fid: str, *args: Any, **kwargs: Any) -> list[DriveFile]:
@@ -255,7 +417,7 @@ class Pan115Drive(BaseDrive):
         Returns:
             list[DriveFile]: 子目录列表
         """
-        return [i for i in self.get_all_list(fid, *args, **kwargs) if not i["isfile"]]
+        return [i for i in self.get_all_list(fid, *args, **kwargs) if i["isdir"]]
 
     def get_file_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile | None:
         """
@@ -270,7 +432,7 @@ class Pan115Drive(BaseDrive):
             DriveFile | None: 文件信息；不存在或该ID是目录时返回 ``None``
         """
         for it in self._query_entries(fid):
-            if it["fc"] == 1:
+            if not _is_dir_entry(it):
                 return _convert_info_to_file(it)
         return None
 
@@ -287,7 +449,7 @@ class Pan115Drive(BaseDrive):
             DriveFile | None: 目录信息；不存在或该ID是文件时返回 ``None``
         """
         for it in self._query_entries(fid):
-            if it["fc"] == 0:
+            if _is_dir_entry(it):
                 return _convert_info_to_dir(it)
         return None
 

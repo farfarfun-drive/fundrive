@@ -255,3 +255,229 @@ def test_save_shared_returns_false_on_api_failure(monkeypatch, failed_step):
 def test_save_shared_requires_login():
     with pytest.raises(AuthenticationError):
         pan115_drive.Pan115Drive().save_shared("abc", "99")
+
+
+# --------------------------------------------------------------------------
+# get_all_list 分页、超时、字段归一化与失败语义（issue #16）
+# --------------------------------------------------------------------------
+
+
+def test_get_all_list_paginates_all_pages_and_forwards_timeout():
+    """多页目录必须读完全部分页，并将 timeout 透传给每一页的 fs_files。"""
+
+    def page(fid):
+        entry = {"fc": 0, "cid": fid, "ns": f"dir-{fid}", "t": 0, "pc": "x"}
+        return {
+            "state": True,
+            "path": [{"name": "root"}],
+            "count": 2,
+            "data": [entry],
+        }
+
+    drive = pan115_drive.Pan115Drive()
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_files.side_effect = [page("101"), page("102")]
+
+    entries = drive.get_all_list("0", timeout=3)
+
+    assert [entry["fid"] for entry in entries] == ["101", "102"]
+    assert [entry["name"] for entry in entries] == ["dir-101", "dir-102"]
+    assert all(entry["isdir"] is True and entry["isfile"] is False for entry in entries)
+    assert len(sdk.fs_files.call_args_list) == 2
+    assert sdk.fs_files.call_args_list[0].args[0]["cid"] == "0"
+    assert sdk.fs_files.call_args_list[0].args[0]["offset"] == 0
+    assert sdk.fs_files.call_args_list[0].kwargs == {"timeout": 3}
+    assert sdk.fs_files.call_args_list[1].args[0]["cid"] == "0"
+    assert sdk.fs_files.call_args_list[1].args[0]["offset"] == 1
+    assert sdk.fs_files.call_args_list[1].kwargs == {"timeout": 3}
+
+
+def test_get_all_list_normalizes_fc_and_name_fields_for_dirs_and_files():
+    """fc=0 / fc='0' 均识别为目录，目录兼容 ns/name/n，文件兼容 n/name/ns 并保留 sha/size。"""
+    drive = pan115_drive.Pan115Drive()
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_files.return_value = {
+        "state": True,
+        "path": [{"name": "根目录"}, {"name": "work"}],
+        "count": 6,
+        "data": [
+            {"fc": 0, "cid": "10", "ns": "dir-ns", "t": 0, "pc": "p1"},
+            {"fc": "0", "cid": "11", "name": "dir-name", "t": 1},
+            {"fc": "0", "cid": 12, "n": "dir-n"},
+            {
+                "fc": 1,
+                "fid": "20",
+                "n": "file-n.txt",
+                "s": 128,
+                "sha": "A" * 40,
+                "t": "1700000000",
+                "pc": "p2",
+            },
+            {
+                "fc": "1",
+                "fid": "21",
+                "name": "file-name.bin",
+                "size": 0,
+                "sha1": "B" * 40,
+            },
+            {"fc": "1", "fid": 22, "ns": "file-ns.log"},
+        ],
+    }
+
+    entries = drive.get_all_list("0", timeout=5)
+    assert len(entries) == 6
+
+    dirs = [e for e in entries if e["isdir"]]
+    files = [e for e in entries if e["isfile"]]
+    assert [(d["fid"], d["name"], d["isdir"], d["isfile"]) for d in dirs] == [
+        ("10", "dir-ns", True, False),
+        ("11", "dir-name", True, False),
+        ("12", "dir-n", True, False),
+    ]
+    assert all(e["dirname"] == "work" for e in entries)
+    assert [
+        (f["fid"], f["name"], f["isdir"], f["isfile"], f["size"], f["sha"])
+        for f in files
+    ] == [
+        ("20", "file-n.txt", False, True, 128, "A" * 40),
+        ("21", "file-name.bin", False, True, 0, "B" * 40),
+        ("22", "file-ns.log", False, True, None, None),
+    ]
+    assert [d["fid"] for d in drive.get_dir_list("0", timeout=5)] == ["10", "11", "12"]
+    assert [f["fid"] for f in drive.get_file_list("0", timeout=5)] == ["20", "21", "22"]
+
+
+def test_get_dir_and_file_info_accept_string_fc():
+    assert (
+        _drive({"data": [{"fc": "0", "cid": "456", "n": "docs"}]}).get_dir_info("456")[
+            "name"
+        ]
+        == "docs"
+    )
+    assert (
+        _drive({"data": [{"fc": "1", "fid": "123", "name": "a.txt"}]}).get_file_info(
+            "123"
+        )["name"]
+        == "a.txt"
+    )
+
+
+def test_get_all_list_empty_directory_returns_empty_list():
+    drive = pan115_drive.Pan115Drive()
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_files.return_value = {
+        "state": True,
+        "path": [{"name": "root"}],
+        "count": 0,
+        "data": [],
+    }
+
+    assert drive.get_all_list("0", timeout=3) == []
+    sdk.fs_files.assert_called_once()
+
+
+def test_get_all_list_raises_when_second_page_times_out():
+    """第二页超时必须抛出异常，不能把第一页当成完整结果返回。"""
+    drive = pan115_drive.Pan115Drive()
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_files.side_effect = [
+        {
+            "state": True,
+            "path": [{"name": "root"}],
+            "count": 2,
+            "data": [{"fc": 0, "cid": "101", "ns": "dir-101"}],
+        },
+        TimeoutError("page 2 timed out"),
+    ]
+
+    with pytest.raises(TimeoutError, match="page 2 timed out"):
+        drive.get_all_list("0", timeout=3)
+
+
+def test_get_all_list_raises_on_auth_failure():
+    """未登录或服务端返回认证失败响应时必须抛出异常。"""
+    with pytest.raises(AuthenticationError):
+        pan115_drive.Pan115Drive().get_all_list("0", timeout=3)
+
+    drive = pan115_drive.Pan115Drive()
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_files.return_value = {
+        "state": False,
+        "errno": 99,
+        "error": "请重新登录",
+    }
+
+    with pytest.raises(Exception, match="请重新登录"):
+        drive.get_all_list("0", timeout=3)
+
+
+@pytest.mark.parametrize(
+    "bad_response",
+    [
+        None,
+        {"state": True, "count": 0},
+        {"state": True, "count": 1, "data": None},
+        {"state": True, "count": 1, "data": {}},
+    ],
+)
+def test_get_all_list_raises_when_response_missing_data_list(bad_response):
+    drive = pan115_drive.Pan115Drive()
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_files.return_value = bad_response
+
+    with pytest.raises(FunDriveError):
+        drive.get_all_list("0", timeout=3)
+
+
+def test_get_all_list_raises_when_pagination_stalls_with_empty_page():
+    """服务端声明 count=2，但第二页返回空列表（分页未前进）时必须抛异常。"""
+    drive = pan115_drive.Pan115Drive()
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_files.side_effect = [
+        {
+            "state": True,
+            "path": [{"name": "root"}],
+            "count": 2,
+            "data": [{"fc": 0, "cid": "101", "ns": "dir-101"}],
+        },
+        {
+            "state": True,
+            "path": [{"name": "root"}],
+            "count": 2,
+            "data": [],
+        },
+    ]
+
+    with pytest.raises(FunDriveError, match="分页未前进"):
+        drive.get_all_list("0", timeout=3)
+
+
+def test_get_all_list_raises_when_server_offset_does_not_advance():
+    """服务端显式返回的 offset 与请求的 offset 不一致时必须抛异常。"""
+    drive = pan115_drive.Pan115Drive()
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_files.side_effect = [
+        {
+            "state": True,
+            "offset": 0,
+            "count": 2,
+            "data": [{"fc": 0, "cid": "101", "ns": "dir-101"}],
+        },
+        {
+            "state": True,
+            "offset": 0,
+            "count": 2,
+            "data": [{"fc": 0, "cid": "101", "ns": "dir-101"}],
+        },
+    ]
+
+    with pytest.raises(FunDriveError, match="分页未前进"):
+        drive.get_all_list("0", timeout=3)
