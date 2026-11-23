@@ -18,6 +18,7 @@ Gitee是中国领先的代码托管平台，本驱动将Gitee仓库作为云存�
 
 import base64
 import os
+from collections.abc import Callable
 from typing import Any
 
 from farlog import getLogger
@@ -446,7 +447,7 @@ class GiteeDrive(BaseDrive):
         filename: str | None = None,
         content: str | None = None,
         commit_message: str | None = None,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:
@@ -531,7 +532,7 @@ class GiteeDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args,
         **kwargs,
     ) -> bool:

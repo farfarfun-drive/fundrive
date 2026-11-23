@@ -16,6 +16,7 @@
 """
 
 import os
+from collections.abc import Callable
 from typing import Any
 from urllib.parse import quote
 
@@ -351,7 +352,7 @@ class TSingHuaDrive(BaseDrive):
         filepath: str,
         fid: str,
         filename: str | None = None,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         **kwargs,
     ) -> bool:
         """
@@ -376,7 +377,7 @@ class TSingHuaDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args,
         **kwargs,
     ) -> bool:

@@ -16,6 +16,7 @@
 """
 
 import os
+from collections.abc import Callable
 from typing import Any
 
 import orjson
@@ -382,7 +383,7 @@ class TianChiDrive(BaseDrive):
         filepath: str,
         fid: str,
         filename: str | None = None,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         **kwargs,
     ) -> bool:
         """
@@ -407,7 +408,7 @@ class TianChiDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args,
         **kwargs,
     ) -> bool:

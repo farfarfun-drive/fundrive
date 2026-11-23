@@ -16,6 +16,7 @@ OpenXLab是上海人工智能实验室推出的开放平台，提供数据集存
 """
 
 import os
+from collections.abc import Callable
 from typing import Any
 
 import requests
@@ -389,7 +390,7 @@ class OpenXLabDrive(BaseDrive):
         filepath: str,
         fid: str,
         filename: str | None = None,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         **kwargs,
     ) -> bool:
         """
@@ -414,7 +415,7 @@ class OpenXLabDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args,
         **kwargs,
     ) -> bool:

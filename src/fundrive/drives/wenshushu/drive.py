@@ -21,6 +21,7 @@ import concurrent.futures
 import hashlib
 import os
 import time
+from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
@@ -413,7 +414,7 @@ class WSSDrive(BaseDrive):
         filepath: str,
         fid: str,
         filename: str | None = None,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         **kwargs,
     ) -> bool:
         """
@@ -478,7 +479,7 @@ class WSSDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args,
         **kwargs,
     ) -> bool:

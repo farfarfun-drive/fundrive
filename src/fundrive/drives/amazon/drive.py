@@ -19,6 +19,7 @@ Amazon S3是亚马逊提供的对象存储服务，提供高可用性、可扩�
 # 标准库导入
 import mimetypes
 import os
+from collections.abc import Callable
 from typing import Any
 
 # 第三方库导入
@@ -538,7 +539,7 @@ class S3Drive(BaseDrive):
         filepath: str,
         fid: str,
         filename: str | None = None,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         **kwargs,
     ) -> bool:
         """
@@ -616,7 +617,7 @@ class S3Drive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args,
         **kwargs,
     ) -> bool:

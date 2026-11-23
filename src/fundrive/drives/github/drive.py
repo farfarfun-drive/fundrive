@@ -20,6 +20,7 @@ GitHub是全球最大的代码托管平台，本驱动将GitHub仓库作为云�
 import base64
 import os
 import time
+from collections.abc import Callable
 from typing import Any
 
 # 第三方库导入
@@ -532,7 +533,7 @@ class GitHubDrive(BaseDrive):
         filename: str | None = None,
         content: str | None = None,
         commit_message: str | None = None,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:
@@ -620,7 +621,7 @@ class GitHubDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args,
         **kwargs,
     ) -> bool:

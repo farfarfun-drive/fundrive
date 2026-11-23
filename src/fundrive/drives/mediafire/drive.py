@@ -19,6 +19,7 @@ MediaFire是一个流行的云存储服务，提供文件存储、共享和同�
 import hashlib
 import json
 import os
+from collections.abc import Callable
 from typing import Any
 from urllib.parse import urljoin
 
@@ -577,7 +578,7 @@ class MediaFireDrive(BaseDrive):
         filepath: str,
         fid: str,
         filename: str | None = None,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         **kwargs,
     ) -> bool:
         """
@@ -647,7 +648,7 @@ class MediaFireDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable | None = None,
+        callback: Callable[..., Any] | None = None,
         *args,
         **kwargs,
     ) -> bool:
