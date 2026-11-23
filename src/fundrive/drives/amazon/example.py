@@ -61,7 +61,7 @@ def log_files(files: list[DriveFile], title: str = "文件列表"):
             logger.info(f"      修改时间: {file.ext['last_modified']}")
 
 
-def create_test_file(filename: str = "s3_test.txt", content: str = None) -> str:
+def create_test_file(filename: str = "s3_test.txt", content: str | None = None) -> str:
     """创建测试文件"""
     if content is None:
         content = f"""Amazon S3测试文件

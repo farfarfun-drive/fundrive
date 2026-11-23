@@ -103,7 +103,7 @@ endpoint={self._endpoint}
             raise RuntimeError("ossutil工具未初始化")
 
         # 构建完整命令
-        full_command = [self._ossutil_path] + command
+        full_command = [self._ossutil_path, *command]
 
         # 添加配置文件参数
         if self._config_file:

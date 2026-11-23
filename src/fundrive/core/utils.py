@@ -820,10 +820,10 @@ def log_storage_info(used_space: str, free_space: str, total_space: str) -> None
 def format_docstring_template(
     description: str,
     detailed_description: str = "",
-    args: dict[str, str] = None,
+    args: dict[str, str] | None = None,
     returns: str = "",
-    raises: dict[str, str] = None,
-    examples: list[str] = None,
+    raises: dict[str, str] | None = None,
+    examples: list[str] | None = None,
 ) -> str:
     """
     生成标准化的文档字符串模板

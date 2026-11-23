@@ -1,6 +1,6 @@
 import json
 import os
-from typing import Any
+from typing import Any, ClassVar
 
 import requests
 from farlog import getLogger
@@ -27,7 +27,7 @@ class ZenodoClient:
     - 版本管理
     """
 
-    code_list = {
+    code_list: ClassVar[dict[int, dict[str, Any]]] = {
         200: {
             "code": 200,
             "name": "OK",

@@ -38,7 +38,9 @@ def print_separator(title: str = ""):
         print("=" * 60)
 
 
-def create_test_file(filename: str = "test_file.txt", content: str = None) -> str:
+def create_test_file(
+    filename: str = "test_file.txt", content: str | None = None
+) -> str:
     """创建测试文件"""
     if content is None:
         content = f"""这是一个测试文件
@@ -132,7 +134,7 @@ def demo_upload_operations(drive: WSSDrive):
     return None
 
 
-def demo_download_operations(drive: WSSDrive, share_url: str = None):
+def demo_download_operations(drive: WSSDrive, share_url: str | None = None):
     """演示下载操作"""
     print_separator("文件下载演示")
 

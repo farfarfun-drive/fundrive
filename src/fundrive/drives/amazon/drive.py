@@ -537,8 +537,8 @@ class S3Drive(BaseDrive):
         self,
         filepath: str,
         fid: str,
-        filename: str = None,
-        callback: callable = None,
+        filename: str | None = None,
+        callback: callable | None = None,
         **kwargs,
     ) -> bool:
         """
@@ -616,7 +616,7 @@ class S3Drive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable = None,
+        callback: callable | None = None,
         *args,
         **kwargs,
     ) -> bool:

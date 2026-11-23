@@ -1,6 +1,7 @@
 import os
 import stat
 from types import SimpleNamespace
+from typing import Any, ClassVar
 
 import pytest
 
@@ -11,7 +12,7 @@ from fundrive.drives.alipan import drive_open  # noqa: E402
 
 
 class FakeManage:
-    instances = []
+    instances: ClassVar[list[Any]] = []
     token = "scanned-token"
     fail = False
 

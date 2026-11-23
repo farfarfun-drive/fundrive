@@ -443,10 +443,10 @@ class GiteeDrive(BaseDrive):
         self,
         filepath: str,
         fid: str,
-        filename: str = None,
-        content: str = None,
-        commit_message: str = None,
-        callback: callable = None,
+        filename: str | None = None,
+        content: str | None = None,
+        commit_message: str | None = None,
+        callback: callable | None = None,
         *args: Any,
         **kwargs: Any,
     ) -> bool:
@@ -531,7 +531,7 @@ class GiteeDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable = None,
+        callback: callable | None = None,
         *args,
         **kwargs,
     ) -> bool:

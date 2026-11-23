@@ -62,7 +62,9 @@ def log_files(files: list[DriveFile], title: str = "文件列表"):
             logger.info(f"      SHA: {file.ext['sha'][:8]}...")
 
 
-def create_test_file(filename: str = "github_test.txt", content: str = None) -> str:
+def create_test_file(
+    filename: str = "github_test.txt", content: str | None = None
+) -> str:
     """创建测试文件"""
     if content is None:
         content = f"""GitHub云存储测试文件

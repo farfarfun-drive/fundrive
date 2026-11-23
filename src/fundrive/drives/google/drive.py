@@ -1,7 +1,7 @@
 # 标准库导入
 import io
 import os
-from typing import Any
+from typing import Any, ClassVar
 
 from farlog import getLogger
 from funsecret import read_secret
@@ -37,7 +37,7 @@ class GoogleDrive(BaseDrive):
     """
 
     # Google Drive API 权限范围
-    SCOPES = ["https://www.googleapis.com/auth/drive"]
+    SCOPES: ClassVar[list[str]] = ["https://www.googleapis.com/auth/drive"]
 
     def __init__(
         self,

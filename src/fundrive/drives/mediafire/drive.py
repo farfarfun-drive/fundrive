@@ -103,9 +103,9 @@ class MediaFireDrive(BaseDrive):
     def _make_request(
         self,
         endpoint: str,
-        params: dict[str, Any] = None,
+        params: dict[str, Any] | None = None,
         method: str = "GET",
-        data: dict[str, Any] = None,
+        data: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         发送API请求
@@ -576,8 +576,8 @@ class MediaFireDrive(BaseDrive):
         self,
         filepath: str,
         fid: str,
-        filename: str = None,
-        callback: callable = None,
+        filename: str | None = None,
+        callback: callable | None = None,
         **kwargs,
     ) -> bool:
         """
@@ -647,7 +647,7 @@ class MediaFireDrive(BaseDrive):
         filename: str | None = None,
         filepath: str | None = None,
         overwrite: bool = False,
-        callback: callable = None,
+        callback: callable | None = None,
         *args,
         **kwargs,
     ) -> bool:

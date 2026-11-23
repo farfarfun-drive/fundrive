@@ -112,8 +112,8 @@ ignore = [
 #   DTZ（naive datetime）—— 全工作区 9 处，改成 tz-aware 会改变对用户显示的时间，
 #     属于行为变更，要连同"该显示本地时间还是 UTC"一起决定。
 # 哪个仓库目前已经干净，可以自己 extend-select 加严（fundrive-quark 就是这么做的）。
-# 本仓库对 DTZ 已全部清零，在基线之上自愿加严，防止引入新的 naive datetime。
-extend-select = ["DTZ"]
+# 本仓库对 DTZ / RUF012 / RUF013 已全部清零，在基线之上自愿加严，防止回退。
+extend-select = ["DTZ", "RUF012", "RUF013"]
 
 [tool.pytest.ini_options]
 testpaths = [ "tests",]
