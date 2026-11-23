@@ -481,3 +481,49 @@ def test_get_all_list_raises_when_server_offset_does_not_advance():
 
     with pytest.raises(FunDriveError, match="分页未前进"):
         drive.get_all_list("0", timeout=3)
+
+
+def test_request_interval_configurable(monkeypatch):
+    """request_interval=0 不调用 sleep，自定义正值按配置等待。"""
+    sleeps: list[float] = []
+    monkeypatch.setattr(pan115_drive.time, "sleep", sleeps.append)
+
+    drive_fast = pan115_drive.Pan115Drive(request_interval=0)
+    sdk = Mock()
+    sdk.fs_files.return_value = {"state": True, "count": 0, "data": []}
+    drive_fast._client = sdk
+    assert drive_fast.get_all_list("0") == []
+    assert sleeps == []
+
+    drive_slow = pan115_drive.Pan115Drive(request_interval=0.25)
+    drive_slow._client = sdk
+    assert drive_slow.get_all_list("0") == []
+    assert sleeps == [0.25]
+
+
+def test_search_normalizes_entries_and_forwards_timeout():
+    drive = pan115_drive.Pan115Drive(request_interval=0)
+    sdk = Mock()
+    drive._client = sdk
+    sdk.fs_search.return_value = {
+        "state": True,
+        "data": [
+            {"fc": "0", "cid": "10", "ns": "report-dir", "t": 0},
+            {"fc": "1", "fid": "20", "n": "report.pdf", "s": 256, "sha": "C" * 40},
+        ],
+    }
+
+    hits = drive.search("report", fid="0", timeout=4)
+    assert [
+        (h["fid"], h["name"], h["isdir"], h["isfile"], h["size"]) for h in hits
+    ] == [
+        ("10", "report-dir", True, False, None),
+        ("20", "report.pdf", False, True, 256),
+    ]
+    sdk.fs_search.assert_called_once_with(
+        {"search_value": "report", "cid": "0"}, timeout=4
+    )
+
+    sdk.fs_search.return_value = {"state": True, "data": None}
+    with pytest.raises(FunDriveError):
+        drive.search("report")

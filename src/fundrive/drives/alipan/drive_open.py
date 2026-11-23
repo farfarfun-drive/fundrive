@@ -13,6 +13,7 @@ from funsecret import read_secret
 # 项目内部导入
 from fundrive.core import BaseDrive, DriveFile
 from fundrive.core.base import get_filepath
+from fundrive.core.exceptions import FunDriveError
 
 logger = getLogger("fundrive")
 CACHE_FILE = Path.home() / ".farfarfun/fundrive/drives/aliopen/refresh_token"
@@ -132,54 +133,124 @@ class AliopenDrive(BaseDrive):
         :param fid: 文件或文件夹ID
         :return: 是否存在
         """
-        return "file_id" in self.drive.get_file_details(file_id=fid)
+        res = self.drive.get_file_details(file_id=fid)
+        return isinstance(res, dict) and "file_id" in res
 
-    def get_file_list(self, fid: str = "root", *args, **kwargs) -> list[DriveFile]:
+    def _list_all_items(
+        self,
+        fid: str,
+        item_type: str,
+        limit: int = 100,
+    ) -> list[dict[str, Any]]:
+        """按 next_marker 拉取指定目录下的全部分页条目。"""
+        items: list[dict[str, Any]] = []
+        marker: str | None = None
+        seen_markers: set[str] = set()
+        while True:
+            call_kwargs: dict[str, Any] = {
+                "parent_file_id": fid,
+                "type": item_type,
+                "limit": limit,
+            }
+            if marker is not None:
+                call_kwargs["marker"] = marker
+            resp = self.drive.get_file_list(**call_kwargs)
+            if not isinstance(resp, dict) or not isinstance(resp.get("items"), list):
+                raise FunDriveError(
+                    f"读取阿里云盘目录失败 fid={fid}: 响应缺少 items 列表",
+                    error_code="ALIOPEN_LIST_INVALID_RESPONSE",
+                    details={"fid": fid, "marker": marker},
+                )
+            items.extend(resp["items"])
+            next_marker = resp.get("next_marker") or ""
+            if not next_marker:
+                break
+            if next_marker == marker or next_marker in seen_markers:
+                raise FunDriveError(
+                    f"读取阿里云盘目录失败 fid={fid}: next_marker 未前进 ({next_marker!r})",
+                    error_code="ALIOPEN_LIST_STALLED",
+                    details={"fid": fid, "marker": next_marker},
+                )
+            seen_markers.add(next_marker)
+            marker = next_marker
+        return items
+
+    def get_file_list(
+        self, fid: str = "root", *args, limit: int = 100, **kwargs
+    ) -> list[DriveFile]:
         """
-        获取指定目录下的文件列表
+        获取指定目录下的全部文件列表（自动分页）
         :param fid: 目录ID，默认为根目录
+        :param limit: 单页条数上限，默认 100
         :return: 文件信息列表
         """
         result = []
-        for file in self.drive.get_file_list(parent_file_id=fid, type="file")["items"]:
-            if file["type"] == "file":
+        for file in self._list_all_items(fid=fid, item_type="file", limit=limit):
+            if file.get("type", "file") == "file":
                 result.append(
                     DriveFile(
                         fid=file["file_id"],
                         name=file["name"],
-                        size=file["size"],
+                        size=file.get("size"),
+                        isfile=True,
+                        isdir=False,
                         ext=file,
                     )
                 )
         return result
 
-    def get_dir_list(self, fid: str = "root", *args, **kwargs) -> list[DriveFile]:
+    def get_dir_list(
+        self, fid: str = "root", *args, limit: int = 100, **kwargs
+    ) -> list[DriveFile]:
         """
-        获取指定目录下的子目录列表
+        获取指定目录下的全部子目录列表（自动分页）
         :param fid: 目录ID，默认为根目录
+        :param limit: 单页条数上限，默认 100
         :return: 子目录信息列表
         """
         result = []
-        for file in self.drive.get_file_list(parent_file_id=fid, type="folder")[
-            "items"
-        ]:
-            result.append(
-                DriveFile(
-                    fid=file["file_id"], name=file["name"], size=file["size"], ext=file
+        for file in self._list_all_items(fid=fid, item_type="folder", limit=limit):
+            if file.get("type", "folder") == "folder":
+                result.append(
+                    DriveFile(
+                        fid=file["file_id"],
+                        name=file["name"],
+                        size=file.get("size"),
+                        isfile=False,
+                        isdir=True,
+                        ext=file,
+                    )
                 )
-            )
         return result
 
-    def get_file_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile:
+    def get_file_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile | None:
         res = self.drive.get_file_details(file_id=fid)
+        if not isinstance(res, dict) or "file_id" not in res:
+            return None
+        if res.get("type") == "folder":
+            return None
         return DriveFile(
-            fid=res["file_id"], name=res["name"], size=res["size"], ext=res
+            fid=res["file_id"],
+            name=res["name"],
+            size=res.get("size"),
+            isfile=True,
+            isdir=False,
+            ext=res,
         )
 
-    def get_dir_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile:
+    def get_dir_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile | None:
         res = self.drive.get_file_details(file_id=fid)
+        if not isinstance(res, dict) or "file_id" not in res:
+            return None
+        if res.get("type") == "file":
+            return None
         return DriveFile(
-            fid=res["file_id"], name=res["name"], size=res["size"], ext=res
+            fid=res["file_id"],
+            name=res["name"],
+            size=res.get("size"),
+            isfile=False,
+            isdir=True,
+            ext=res,
         )
 
     def download_file(

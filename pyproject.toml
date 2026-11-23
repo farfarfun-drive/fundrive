@@ -41,13 +41,14 @@ alipan = [ "aligo>=6.2.4", "fundrive-alipan>=2.0.102",]
 oss = [ "oss2>=2.19.0",]
 webdav = [ "webdav4>=0.10.0",]
 wenshushu = [ "base58>=2.1.1", "pycryptodomex>=3.21.0",]
-baidu = [ "fundrive-baidu>=1.0.10",]
-lanzou = [ "fundrive-lanzou>=1.2.73", "funfile>=1.0.39",]
+baidu = [ "fundrive-baidu>=2.0.102",]
+lanzou = [ "fundrive-lanzou>=2.0.102", "funfile>=1.0.39",]
 dropbox = [ "dropbox>=12.0.2",]
 google = [ "google-api-python-client>=2.0.0", "google-auth>=2.0.0", "google-auth-httplib2>=0.1.0", "google-auth-oauthlib>=1.0.0",]
 amazon = [ "boto3>=1.34.0", "botocore>=1.34.0",]
 ossutil = [ "funinstall>=1.0.58",]
-pan115 = [ "fundrive-pan115>=2.0.99", "funfile>=1.0.39",]
+pan115 = [ "fundrive-pan115>=2.0.102", "funfile>=1.0.39",]
+cmcloud = []
 pcloud = []
 github = []
 gitee = []
@@ -59,9 +60,9 @@ openxlab = []
 tianchi = []
 
 [project.urls]
-Organization = "https://github.com/farfarfun"
-Repository = "https://github.com/farfarfun/fundrive"
-Releases = "https://github.com/farfarfun/fundrive/releases"
+Organization = "https://github.com/farfarfun-drive"
+Repository = "https://github.com/farfarfun-drive/fundrive"
+Releases = "https://github.com/farfarfun-drive/fundrive/releases"
 
 [build-system]
 requires = ["hatchling"]
@@ -76,9 +77,9 @@ target-version = "py312"
 extend-exclude = [ "*.md",]
 
 # ---------------------------------------------------------------------------
-# 以下 select / ignore 是 fundrive 工作区五个仓库**共用的基线**，逐字相同。
-# 改动任何一条都要同步到另外四个仓库（fundrive / fundrive-alipan / fundrive-baidu /
-# fundrive-lanzou / fundrive-quark），否则"统一"立刻又散掉。
+# 以下 select / ignore 是 fundrive 工作区六个仓库**共用的基线**，逐字相同。
+# 改动任何一条都要同步到全部仓库（fundrive / fundrive-alipan / fundrive-baidu /
+# fundrive-lanzou / fundrive-pan115 / fundrive-quark），否则"统一"立刻又散掉。
 # 基线的取舍记录在 fundrive-dev 的 docs/project/project-governance/
 # 004-known-deviations.md 第 6 条。
 # ---------------------------------------------------------------------------
@@ -121,4 +122,4 @@ addopts = "-q --strict-markers"
 "src/fundrive/drives/*/example.py" = [ "T201",]
 
 [tool.funbuild]
-latest-packages = ["farlog","funget","funsecret","fundrive-alipan"]
+latest-packages = ["farlog", "funget", "funsecret", "fundrive-alipan", "fundrive-baidu", "fundrive-lanzou", "fundrive-pan115"]

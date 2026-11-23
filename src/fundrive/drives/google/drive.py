@@ -221,9 +221,35 @@ class GoogleDrive(BaseDrive):
             logger.error(f"删除文件失败: {e}")
             return False
 
+    def _list_by_query(
+        self, query: str, fields: str, page_size: int = 1000
+    ) -> list[dict[str, Any]]:
+        """按 nextPageToken 拉取 Google Drive 完整分页列表。"""
+        items: list[dict[str, Any]] = []
+        page_token: str | None = None
+        seen_tokens: set[str] = set()
+        while True:
+            list_kwargs: dict[str, Any] = {
+                "q": query,
+                "fields": f"nextPageToken, {fields}",
+                "pageSize": page_size,
+            }
+            if page_token:
+                list_kwargs["pageToken"] = page_token
+            results = self.service.files().list(**list_kwargs).execute()
+            items.extend(results.get("files", []))
+            next_token = results.get("nextPageToken")
+            if not next_token:
+                break
+            if next_token == page_token or next_token in seen_tokens:
+                raise ValueError(f"Google Drive 分页未前进: {next_token!r}")
+            seen_tokens.add(next_token)
+            page_token = next_token
+        return items
+
     def get_file_list(self, fid: str, *args, **kwargs) -> list[DriveFile]:
         """
-        获取目录下的文件列表
+        获取目录下的全部文件列表（自动分页）
 
         Args:
             fid: 目录ID
@@ -236,15 +262,10 @@ class GoogleDrive(BaseDrive):
                 logger.error("未登录Google Drive服务")
                 return []
 
-            # 查询指定目录下的文件（排除文件夹）
             query = f"'{fid}' in parents and mimeType != 'application/vnd.google-apps.folder' and trashed = false"
-            results = (
-                self.service.files()
-                .list(q=query, fields="files(id, name, size, mimeType, modifiedTime)")
-                .execute()
+            files = self._list_by_query(
+                query, fields="files(id, name, size, mimeType, modifiedTime)"
             )
-
-            files = results.get("files", [])
             file_list = []
 
             for file in files:
@@ -252,6 +273,8 @@ class GoogleDrive(BaseDrive):
                     fid=file["id"],
                     name=file["name"],
                     size=int(file.get("size", 0)) if file.get("size") else 0,
+                    isfile=True,
+                    isdir=False,
                     ext={
                         "mimeType": file.get("mimeType"),
                         "modifiedTime": file.get("modifiedTime"),
@@ -267,7 +290,7 @@ class GoogleDrive(BaseDrive):
 
     def get_dir_list(self, fid: str, *args, **kwargs) -> list[DriveFile]:
         """
-        获取目录下的子目录列表
+        获取目录下的全部子目录列表（自动分页）
 
         Args:
             fid: 目录ID
@@ -280,15 +303,10 @@ class GoogleDrive(BaseDrive):
                 logger.error("未登录Google Drive服务")
                 return []
 
-            # 查询指定目录下的文件夹
             query = f"'{fid}' in parents and mimeType = 'application/vnd.google-apps.folder' and trashed = false"
-            results = (
-                self.service.files()
-                .list(q=query, fields="files(id, name, mimeType, modifiedTime)")
-                .execute()
+            dirs = self._list_by_query(
+                query, fields="files(id, name, mimeType, modifiedTime)"
             )
-
-            dirs = results.get("files", [])
             dir_list = []
 
             for dir_info in dirs:
@@ -296,6 +314,8 @@ class GoogleDrive(BaseDrive):
                     fid=dir_info["id"],
                     name=dir_info["name"],
                     size=None,  # 目录没有大小
+                    isfile=False,
+                    isdir=True,
                     ext={
                         "mimeType": dir_info.get("mimeType"),
                         "modifiedTime": dir_info.get("modifiedTime"),

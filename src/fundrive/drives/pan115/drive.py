@@ -94,7 +94,7 @@ class Pan115Drive(BaseDrive):
     ``"0"``。几乎所有接口都要求先 :meth:`login`。
     """
 
-    def __init__(self, *args: Any, **kwargs: Any):
+    def __init__(self, *args: Any, request_interval: float = 1.0, **kwargs: Any):
         """
         初始化115网盘驱动
 
@@ -102,10 +102,16 @@ class Pan115Drive(BaseDrive):
 
         Args:
             *args: 透传给 ``BaseDrive`` 的可变位置参数
+            request_interval (float): 频控节流间隔（秒），默认 1.0，设为 0 可关闭等待
             **kwargs: 透传给 ``BaseDrive`` 的可变关键字参数
         """
         super().__init__(*args, **kwargs)
         self._client: P115Client | None = None
+        self._request_interval = max(0.0, float(request_interval))
+
+    def _throttle(self) -> None:
+        if self._request_interval > 0:
+            time.sleep(self._request_interval)
 
     def login(
         self,
@@ -186,7 +192,7 @@ class Pan115Drive(BaseDrive):
         "文件不存在"（SPEC §8.2）。
         """
         client = self._require_client()
-        time.sleep(1)
+        self._throttle()
         try:
             response = client.fs_file(fid)
         except FileNotFoundError:
@@ -276,7 +282,7 @@ class Pan115Drive(BaseDrive):
         result: list[DriveFile] = []
         offset = 0
         while True:
-            time.sleep(1)
+            self._throttle()
             payload = {
                 "cid": fid,
                 "limit": limit,
@@ -537,26 +543,47 @@ class Pan115Drive(BaseDrive):
         fid: str | None = None,
         file_type: str | None = None,
         *args: Any,
+        timeout: float | None = None,
         **kwargs: Any,
     ) -> list[DriveFile]:
         """
-        按关键字搜索文件
+        按关键字搜索文件或目录，并将条目归一化为 ``DriveFile`` 列表。
 
         Args:
             keyword (str): 搜索关键字
-            fid (str, optional): 保留参数，当前实现是全盘搜索，不限定目录
+            fid (str, optional): 保留参数，若传入则附加 ``cid`` 条件限定搜索目录
             file_type (str, optional): 保留参数，当前实现不按类型过滤
             *args: 可变位置参数
-            **kwargs: 可变关键字参数
+            timeout (float, optional): 透传给底层 ``fs_search`` 的超时时间（秒）
+            **kwargs: 其他透传给底层 ``fs_search`` 的关键字参数
 
         Returns:
-            list[DriveFile]: 命中条目
-
-        Note:
-            这里返回的是 115 接口的原始条目字典，字段名与 ``DriveFile`` 并不一致，
-            调用方暂时不能按 ``DriveFile`` 的字段去取值。
+            list[DriveFile]: 归一化后的命中条目列表
         """
-        return list(self._require_client().fs_search(keyword)["data"])
+        client = self._require_client()
+        request_kwargs = dict(kwargs)
+        if timeout is not None:
+            request_kwargs["timeout"] = timeout
+        payload: str | dict[str, Any] = (
+            {"search_value": keyword, "cid": fid} if fid is not None else keyword
+        )
+        response = check_response(client.fs_search(payload, **request_kwargs))
+        entries = response.get("data") if isinstance(response, dict) else None
+        if not isinstance(entries, list):
+            raise FunDriveError(
+                f"搜索 115 条目失败 keyword={keyword}: 响应缺少条目列表",
+                error_code="PAN115_SEARCH_INVALID_RESPONSE",
+                details={"keyword": keyword},
+            )
+        result: list[DriveFile] = []
+        for it in entries:
+            if not isinstance(it, dict):
+                continue
+            if _is_dir_entry(it):
+                result.append(_convert_info_to_dir(it))
+            else:
+                result.append(_convert_info_to_file(it))
+        return result
 
     def move(
         self,

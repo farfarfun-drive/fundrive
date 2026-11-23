@@ -250,77 +250,85 @@ class OneDrive(BaseDrive):
             logger.error(f"删除文件/目录失败: {e}")
             return False
 
-    def get_file_list(self, fid: str = "root", *args, **kwargs) -> list[DriveFile]:
-        """获取文件列表"""
+    def _list_children(
+        self, fid: str = "root", *, timeout: float | None = None
+    ) -> list[dict[str, Any]]:
+        """按 @odata.nextLink 拉取目录下的全部子项。"""
+        headers = {"Authorization": f"Bearer {self.access_token}"}
+        if fid == "root":
+            url: str | None = f"{self.GRAPH_API_BASE}/me/drive/root/children"
+        else:
+            url = f"{self.GRAPH_API_BASE}/me/drive/items/{fid}/children"
+
+        req_kwargs: dict[str, Any] = {}
+        if timeout is not None:
+            req_kwargs["timeout"] = timeout
+
+        items: list[dict[str, Any]] = []
+        seen_urls: set[str] = set()
+        while url:
+            if url in seen_urls:
+                raise ValueError(f"OneDrive 分页未前进: {url}")
+            seen_urls.add(url)
+            response = self.session.get(url, headers=headers, **req_kwargs)
+            if response.status_code != 200:
+                raise RuntimeError(
+                    f"OneDrive 列表请求失败 status={response.status_code}: {response.text}"
+                )
+            data = response.json()
+            items.extend(data.get("value", []))
+            url = data.get("@odata.nextLink")
+        return items
+
+    def get_file_list(
+        self, fid: str = "root", *args, timeout: float | None = None, **kwargs
+    ) -> list[DriveFile]:
+        """获取文件列表（自动分页）"""
         try:
-            headers = {"Authorization": f"Bearer {self.access_token}"}
-
-            if fid == "root":
-                url = f"{self.GRAPH_API_BASE}/me/drive/root/children"
-            else:
-                url = f"{self.GRAPH_API_BASE}/me/drive/items/{fid}/children"
-
-            response = self.session.get(url, headers=headers)
-
-            if response.status_code == 200:
-                data = response.json()
-                files = []
-
-                for item in data.get("value", []):
-                    if "file" in item:  # 只返回文件，不包括文件夹
-                        drive_file = DriveFile(
-                            fid=item["id"],
-                            name=item["name"],
-                            size=item.get("size", 0),
-                            ext={
-                                "type": "file",
-                                "create_time": item.get("createdDateTime", ""),
-                                "update_time": item.get("lastModifiedDateTime", ""),
-                            },
-                        )
-                        files.append(drive_file)
-
-                return files
-            logger.error(f"获取文件列表失败: {response.text}")
-            return []
+            files = []
+            for item in self._list_children(fid, timeout=timeout):
+                if "file" in item:  # 只返回文件，不包括文件夹
+                    drive_file = DriveFile(
+                        fid=item["id"],
+                        name=item["name"],
+                        size=item.get("size", 0),
+                        isfile=True,
+                        isdir=False,
+                        ext={
+                            "type": "file",
+                            "create_time": item.get("createdDateTime", ""),
+                            "update_time": item.get("lastModifiedDateTime", ""),
+                        },
+                    )
+                    files.append(drive_file)
+            return files
 
         except Exception as e:
             logger.error(f"获取文件列表失败: {e}")
             return []
 
-    def get_dir_list(self, fid: str = "root", *args, **kwargs) -> list[DriveFile]:
-        """获取目录列表"""
+    def get_dir_list(
+        self, fid: str = "root", *args, timeout: float | None = None, **kwargs
+    ) -> list[DriveFile]:
+        """获取目录列表（自动分页）"""
         try:
-            headers = {"Authorization": f"Bearer {self.access_token}"}
-
-            if fid == "root":
-                url = f"{self.GRAPH_API_BASE}/me/drive/root/children"
-            else:
-                url = f"{self.GRAPH_API_BASE}/me/drive/items/{fid}/children"
-
-            response = self.session.get(url, headers=headers)
-
-            if response.status_code == 200:
-                data = response.json()
-                dirs = []
-
-                for item in data.get("value", []):
-                    if "folder" in item:  # 只返回文件夹
-                        drive_file = DriveFile(
-                            fid=item["id"],
-                            name=item["name"],
-                            size=item.get("size", 0),
-                            ext={
-                                "type": "dir",
-                                "create_time": item.get("createdDateTime", ""),
-                                "update_time": item.get("lastModifiedDateTime", ""),
-                            },
-                        )
-                        dirs.append(drive_file)
-
-                return dirs
-            logger.error(f"获取目录列表失败: {response.text}")
-            return []
+            dirs = []
+            for item in self._list_children(fid, timeout=timeout):
+                if "folder" in item:  # 只返回文件夹
+                    drive_file = DriveFile(
+                        fid=item["id"],
+                        name=item["name"],
+                        size=item.get("size", 0),
+                        isfile=False,
+                        isdir=True,
+                        ext={
+                            "type": "dir",
+                            "create_time": item.get("createdDateTime", ""),
+                            "update_time": item.get("lastModifiedDateTime", ""),
+                        },
+                    )
+                    dirs.append(drive_file)
+            return dirs
 
         except Exception as e:
             logger.error(f"获取目录列表失败: {e}")

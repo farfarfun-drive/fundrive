@@ -80,7 +80,8 @@ class BaiDuDrive(BaseDrive):
         if name in dir_map:
             logger.info(f"name={name} exists, return fid={fid}")
             return dir_map[name]
-        path = f"{fid}/{name}"
+        base = fid.rstrip("/")
+        path = f"{base}/{name}" if base else f"/{name}"
         try:
             self.drive.makedir(path)
         except Exception as e:
@@ -130,7 +131,7 @@ class BaiDuDrive(BaseDrive):
             self.drive.upload_file(f, remotepath=fid)
         return True
 
-    def get_file_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile:
+    def get_file_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile | None:
         """
         获取文件详细信息
         :param fid: 文件ID
@@ -138,9 +139,12 @@ class BaiDuDrive(BaseDrive):
         :param kwargs: 关键字参数
         :return: 文件信息对象
         """
-        return convert(self.drive.meta(fid)[0]) if self.drive.is_file(fid) else None
+        if not self.drive.is_file(fid):
+            return None
+        meta = self.drive.meta(fid)
+        return convert(meta[0]) if meta else None
 
-    def get_dir_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile:
+    def get_dir_info(self, fid: str, *args: Any, **kwargs: Any) -> DriveFile | None:
         """
         获取目录详细信息
         :param fid: 目录ID
@@ -148,7 +152,10 @@ class BaiDuDrive(BaseDrive):
         :param kwargs: 关键字参数
         :return: 目录信息对象
         """
-        return convert(self.drive.meta(fid)[0]) if self.drive.is_dir(fid) else None
+        if not self.drive.is_dir(fid):
+            return None
+        meta = self.drive.meta(fid)
+        return convert(meta[0]) if meta else None
 
     def get_file_list(self, fid: str, *args: Any, **kwargs: Any) -> list[DriveFile]:
         """
@@ -199,13 +206,14 @@ class BaiDuDrive(BaseDrive):
             "Cookie": f"BDUSS={self.drive.bduss};ptoken={self.drive.ptoken}",
         }
         try:
-            filepath = get_filepath(save_dir, filename, filepath)
+            target_path = get_filepath(
+                save_dir, filename or os.path.basename(fid), filepath
+            )
             # *args 会继续往后填 download() 的位置形参，和下面的 filepath=
             # 撞车，只要调用方传了位置参数就直接 TypeError，所以不透传。
             download(
                 link,
-                filepath=filepath
-                or os.path.join(save_dir, filename or os.path.basename(fid)),
+                filepath=target_path,
                 headers=headers,
                 overwrite=overwrite,
                 **kwargs,
