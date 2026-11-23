@@ -339,6 +339,7 @@ class DropboxDrive(BaseDrive):
 
             # 获取目录内容
             response = self.client.files_list_folder(path)
+            seen_cursors: set[str] = set()
 
             while True:
                 for entry in response.entries:
@@ -348,6 +349,7 @@ class DropboxDrive(BaseDrive):
                                 fid=entry.path_display,
                                 name=entry.name,
                                 isfile=True,
+                                isdir=False,
                                 path=entry.path_display,
                                 size=entry.size,
                                 last_modified=entry.server_modified.isoformat()
@@ -360,6 +362,9 @@ class DropboxDrive(BaseDrive):
                 # 检查是否有更多结果
                 if not response.has_more:
                     break
+                if response.cursor in seen_cursors:
+                    raise ValueError(f"Dropbox 分页未前进: {response.cursor!r}")
+                seen_cursors.add(response.cursor)
                 response = self.client.files_list_folder_continue(response.cursor)
 
             return result
@@ -387,6 +392,7 @@ class DropboxDrive(BaseDrive):
 
             # 获取目录内容
             response = self.client.files_list_folder(path)
+            seen_cursors: set[str] = set()
 
             while True:
                 for entry in response.entries:
@@ -396,6 +402,7 @@ class DropboxDrive(BaseDrive):
                                 fid=entry.path_display,
                                 name=entry.name,
                                 isfile=False,
+                                isdir=True,
                                 path=entry.path_display,
                                 size=0,
                             )
@@ -404,6 +411,9 @@ class DropboxDrive(BaseDrive):
                 # 检查是否有更多结果
                 if not response.has_more:
                     break
+                if response.cursor in seen_cursors:
+                    raise ValueError(f"Dropbox 分页未前进: {response.cursor!r}")
+                seen_cursors.add(response.cursor)
                 response = self.client.files_list_folder_continue(response.cursor)
 
             return result

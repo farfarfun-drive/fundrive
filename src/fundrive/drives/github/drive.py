@@ -362,8 +362,12 @@ class GitHubDrive(BaseDrive):
                 logger.error(f"获取文件列表失败: {response.status_code}")
                 return []
 
+            data = response.json()
+            if not isinstance(data, list):
+                return []
+
             files = []
-            for item in response.json():
+            for item in data:
                 if item["type"] == "file":
                     drive_file = DriveFile(
                         fid=item["path"],
@@ -409,8 +413,12 @@ class GitHubDrive(BaseDrive):
                 logger.error(f"获取目录列表失败: {response.status_code}")
                 return []
 
+            data = response.json()
+            if not isinstance(data, list):
+                return []
+
             dirs = []
-            for item in response.json():
+            for item in data:
                 if item["type"] == "dir":
                     drive_file = DriveFile(
                         fid=item["path"],

@@ -383,9 +383,37 @@ class MediaFireDrive(BaseDrive):
             logger.error(f"删除文件/目录失败: {e}")
             return False
 
+    def _list_folder_chunks(self, fid: str, content_type: str) -> list[dict[str, Any]]:
+        """按 chunk/more_chunks 拉取 MediaFire 目录全部分页条目。"""
+        items: list[dict[str, Any]] = []
+        chunk = 1
+        while True:
+            params = {
+                "folder_key": fid if fid != "root" else "",
+                "content_type": content_type,
+                "chunk": chunk,
+            }
+            result = self._make_request("folder/get_content.php", params=params)
+            folder_content = (
+                (result or {}).get("response", {}).get("folder_content", {})
+            )
+            batch = folder_content.get(content_type, [])
+            if not isinstance(batch, list):
+                break
+            items.extend(batch)
+            more = str(folder_content.get("more_chunks", "no")).lower() == "yes"
+            if not more:
+                break
+            if not batch:
+                raise ValueError(
+                    f"MediaFire 分页未前进: fid={fid}, content_type={content_type}, chunk={chunk}"
+                )
+            chunk += 1
+        return items
+
     def get_file_list(self, fid: str = "root", *args, **kwargs) -> list[DriveFile]:
         """
-        获取文件列表
+        获取文件列表（自动分页）
 
         Args:
             fid: 目录ID
@@ -396,22 +424,16 @@ class MediaFireDrive(BaseDrive):
         try:
             logger.info(f"正在获取文件列表: {fid}")
 
-            params = {
-                "folder_key": fid if fid != "root" else "",
-                "content_type": "files",
-            }
-
-            result = self._make_request("folder/get_content.php", params=params)
-
+            file_list = self._list_folder_chunks(fid, "files")
             files = []
-            folder_content = result.get("response", {}).get("folder_content", {})
-            file_list = folder_content.get("files", [])
 
             for item in file_list:
                 drive_file = DriveFile(
                     fid=item.get("quickkey", ""),
                     name=item.get("filename", ""),
                     size=int(item.get("size", 0)),
+                    isfile=True,
+                    isdir=False,
                     ext={
                         "type": "file",
                         "created": item.get("created", ""),
@@ -435,7 +457,7 @@ class MediaFireDrive(BaseDrive):
 
     def get_dir_list(self, fid: str = "root", *args, **kwargs) -> list[DriveFile]:
         """
-        获取目录列表
+        获取目录列表（自动分页）
 
         Args:
             fid: 目录ID
@@ -446,22 +468,16 @@ class MediaFireDrive(BaseDrive):
         try:
             logger.info(f"正在获取目录列表: {fid}")
 
-            params = {
-                "folder_key": fid if fid != "root" else "",
-                "content_type": "folders",
-            }
-
-            result = self._make_request("folder/get_content.php", params=params)
-
+            folder_list = self._list_folder_chunks(fid, "folders")
             dirs = []
-            folder_content = result.get("response", {}).get("folder_content", {})
-            folder_list = folder_content.get("folders", [])
 
             for item in folder_list:
                 drive_file = DriveFile(
                     fid=item.get("folderkey", ""),
                     name=item.get("name", ""),
                     size=0,  # 目录没有大小
+                    isfile=False,
+                    isdir=True,
                     ext={
                         "type": "folder",
                         "created": item.get("created", ""),
