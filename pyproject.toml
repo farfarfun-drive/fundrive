@@ -1,6 +1,6 @@
 [project]
 name = "fundrive"
-version = "2.0.103"
+version = "2.0.104"
 description = "统一的网盘/云存储操作接口框架 - 一套 API 打通 20+ 服务，涵盖 Google Drive、OneDrive、S3、百度网盘、阿里云盘、蓝奏云、WebDAV 等"
 readme = "README.md"
 requires-python = ">=3.12"
@@ -37,17 +37,17 @@ all = [ "fundrive[oss]", "fundrive[alipan]", "fundrive[webdav]", "fundrive[baidu
 # `all` 是自引用 extra（PEP 621 允许），让 `uv add "fundrive[all]"` 能一次装齐全部驱动；
 # 上面 [dependency-groups] 的同名组只对本仓库开发者生效，发布到 PyPI 的元数据里没有它。
 all = [ "fundrive[oss]", "fundrive[alipan]", "fundrive[webdav]", "fundrive[baidu]", "fundrive[lanzou]", "fundrive[google]", "fundrive[onedrive]", "fundrive[wenshushu]", "fundrive[amazon]", "fundrive[tsinghua]", "fundrive[dropbox]", "fundrive[github]", "fundrive[gitee]", "fundrive[ossutil]", "fundrive[pan115]",]
-alipan = [ "aligo>=6.2.4", "fundrive-alipan>=2.0.102",]
+alipan = [ "aligo>=6.2.4", "fundrive-alipan>=2.0.103",]
 oss = [ "oss2>=2.19.0",]
 webdav = [ "webdav4>=0.10.0",]
 wenshushu = [ "base58>=2.1.1", "pycryptodomex>=3.21.0",]
-baidu = [ "fundrive-baidu>=2.0.102",]
-lanzou = [ "fundrive-lanzou>=2.0.102", "funfile>=1.0.39",]
+baidu = [ "fundrive-baidu>=2.0.103",]
+lanzou = [ "fundrive-lanzou>=2.0.103", "funfile>=1.0.39",]
 dropbox = [ "dropbox>=12.0.2",]
 google = [ "google-api-python-client>=2.0.0", "google-auth>=2.0.0", "google-auth-httplib2>=0.1.0", "google-auth-oauthlib>=1.0.0",]
 amazon = [ "boto3>=1.34.0", "botocore>=1.34.0",]
 ossutil = [ "funinstall>=1.0.58",]
-pan115 = [ "fundrive-pan115>=2.0.102", "funfile>=1.0.39",]
+pan115 = [ "fundrive-pan115>=2.0.103", "funfile>=1.0.39",]
 cmcloud = []
 pcloud = []
 github = []
@@ -60,9 +60,9 @@ openxlab = []
 tianchi = []
 
 [project.urls]
-Organization = "https://github.com/farfarfun-drive"
-Repository = "https://github.com/farfarfun-drive/fundrive"
-Releases = "https://github.com/farfarfun-drive/fundrive/releases"
+Organization = "https://github.com/farfarfun"
+Repository = "https://github.com/farfarfun/fundrive"
+Releases = "https://github.com/farfarfun/fundrive/releases"
 
 [build-system]
 requires = ["hatchling"]
