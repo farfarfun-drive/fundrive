@@ -77,6 +77,8 @@ class LRUCache:
             value (Any): 缓存值
         """
         with self._lock:
+            if self.max_size <= 0:
+                return
             if key in self._cache:
                 # 更新现有值
                 self._cache.pop(key)
@@ -243,8 +245,8 @@ class ConnectionPool:
     def close_all(self) -> None:
         """关闭所有连接"""
         with self._lock:
-            # 关闭池中的连接
-            for conn in self._pool:
+            # 关闭池中空闲连接及已借出但未归还的连接，避免资源泄漏
+            for conn in (*self._pool, *self._in_use):
                 if hasattr(conn, "close"):
                     try:
                         conn.close()
@@ -417,19 +419,20 @@ def parse_size(size_str: str) -> int:
     """
     size_str = size_str.strip().upper()
 
-    units = {
-        "B": 1,
-        "KB": 1024,
-        "MB": 1024**2,
-        "GB": 1024**3,
-        "TB": 1024**4,
-        "PB": 1024**5,
-    }
+    # 必须按单位后缀从长到短匹配，否则 "1.5GB" 会先命中 "B" 导致 float("1.5G") 失败
+    units = (
+        ("PB", 1024**5),
+        ("TB", 1024**4),
+        ("GB", 1024**3),
+        ("MB", 1024**2),
+        ("KB", 1024),
+        ("B", 1),
+    )
 
-    for unit, multiplier in units.items():
+    for unit, multiplier in units:
         if size_str.endswith(unit):
             try:
-                number = float(size_str[: -len(unit)])
+                number = float(size_str[: -len(unit)].strip())
                 return int(number * multiplier)
             except ValueError:
                 break
@@ -570,10 +573,12 @@ class ProgressTracker:
     @property
     def estimated_remaining(self) -> float | None:
         """估算剩余时间（秒）"""
-        if self.current == 0:
+        if self.current <= 0:
             return None
 
         elapsed = self.elapsed_time
+        if elapsed <= 0:
+            return None
         rate = self.current / elapsed
         return (self.total - self.current) / rate
 
@@ -653,12 +658,13 @@ def validate_fid(allow_empty: bool = False) -> Callable:
                 fid = args[1]
                 if not allow_empty and (not fid or fid.strip() == ""):
                     logger.error(f"{func.__name__}: fid 不能为空")
-                    # 根据函数返回类型返回合适的默认值
-                    if func.__annotations__.get("return") is bool:
+                    # 根据函数返回类型返回合适的默认值（同时兼容 PEP 563 字符串标注）
+                    ret = func.__annotations__.get("return")
+                    if ret is bool or ret == "bool":
                         return False
-                    if func.__annotations__.get("return") is str:
+                    if ret is str or ret == "str":
                         return ""
-                    if "List" in str(func.__annotations__.get("return", "")):
+                    if "list" in str(ret or "").lower():
                         return []
                     return None
 

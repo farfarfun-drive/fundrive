@@ -24,6 +24,7 @@
 import argparse
 import os
 import tempfile
+from datetime import datetime
 
 from fundrive.drives.wenshushu import WSSDrive
 from fundrive.utils.file import print_files
@@ -42,7 +43,7 @@ def create_test_file(filename: str = "test_file.txt", content: str = None) -> st
     if content is None:
         content = f"""这是一个测试文件
 文件名: {filename}
-创建时间: {os.popen("date").read().strip()}
+创建时间: {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")}
 内容: 文叔叔网盘驱动测试文件
 
 文叔叔是一个免费的临时文件分享服务，支持：

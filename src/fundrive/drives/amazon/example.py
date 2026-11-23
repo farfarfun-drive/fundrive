@@ -26,6 +26,7 @@ Amazon S3驱动示例和测试脚本
 import argparse
 import os
 import tempfile
+from datetime import datetime
 
 from farlog import getLogger
 
@@ -65,7 +66,7 @@ def create_test_file(filename: str = "s3_test.txt", content: str = None) -> str:
     if content is None:
         content = f"""Amazon S3测试文件
 文件名: {filename}
-创建时间: {os.popen("date").read().strip()}
+创建时间: {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")}
 
 Amazon S3特性:
 - 高可用性和持久性

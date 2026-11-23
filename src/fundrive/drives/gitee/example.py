@@ -18,6 +18,7 @@ Gitee驱动使用示例
 import argparse
 import os
 import sys
+from datetime import datetime
 
 # 添加项目路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../.."))
@@ -89,7 +90,7 @@ def file_operations_demo():
 
 这是一个通过FunDrive Gitee驱动创建的测试文件。
 
-创建时间: {os.popen("date").read().strip()}
+创建时间: {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")}
 驱动版本: Gitee Drive v1.0.0
 
 ## 功能特性

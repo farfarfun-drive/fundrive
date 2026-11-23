@@ -26,6 +26,7 @@ GitHub驱动示例和测试脚本
 import argparse
 import os
 import tempfile
+from datetime import datetime
 
 from farlog import getLogger
 
@@ -66,7 +67,7 @@ def create_test_file(filename: str = "github_test.txt", content: str = None) -> 
     if content is None:
         content = f"""GitHub云存储测试文件
 文件名: {filename}
-创建时间: {os.popen("date").read().strip()}
+创建时间: {datetime.now().astimezone().strftime("%Y-%m-%d %H:%M:%S")}
 
 GitHub特性:
 - 版本控制

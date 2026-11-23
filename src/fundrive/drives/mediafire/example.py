@@ -25,6 +25,7 @@ MediaFire驱动测试和演示脚本
 import argparse
 import os
 import tempfile
+from datetime import datetime
 
 from farlog import getLogger
 
@@ -110,7 +111,8 @@ def run_comprehensive_test(drive):
     # 测试5: 创建测试文件并上传
     logger.info("\n5️⃣ 测试文件上传...")
     test_content = (
-        f"这是MediaFire的测试文件内容\n测试时间: {os.popen('date').read().strip()}"
+        "这是MediaFire的测试文件内容\n"
+        f"测试时间: {datetime.now().astimezone().strftime('%Y-%m-%d %H:%M:%S')}"
     )
 
     with tempfile.NamedTemporaryFile(

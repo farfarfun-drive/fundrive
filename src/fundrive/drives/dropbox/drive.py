@@ -871,11 +871,14 @@ class DropboxDrive(BaseDrive):
                         requested_visibility=dropbox.sharing.RequestedVisibility.public
                     )
 
-                    # 设置过期时间
+                    # 设置过期时间（Dropbox API v2 按 UTC 解释 expires，
+                    # 但 SDK 的 stone Timestamp 校验器要求传入 naive UTC datetime）
                     if expire_days > 0:
-                        from datetime import datetime, timedelta
+                        from datetime import UTC, datetime, timedelta
 
-                        expire_time = datetime.now() + timedelta(days=expire_days)
+                        expire_time = datetime.now(UTC).replace(
+                            tzinfo=None
+                        ) + timedelta(days=expire_days)
                         settings = dropbox.sharing.SharedLinkSettings(
                             requested_visibility=dropbox.sharing.RequestedVisibility.public,
                             expires=expire_time,

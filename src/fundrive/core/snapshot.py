@@ -6,7 +6,7 @@ class DriveSnapshot:
         self.version_num = version_num
 
     def _tar_path(self, file_path):
-        return f"{file_path}-{datetime.now().strftime('%Y%m%d%H%M%S')}.tar"
+        return f"{file_path}-{datetime.now().astimezone().strftime('%Y%m%d%H%M%S')}.tar"
 
     def update(self, file_path, *args, **kwargs):
         pass
